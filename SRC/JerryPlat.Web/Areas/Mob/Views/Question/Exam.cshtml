@@ -1,0 +1,248 @@
+﻿@model int
+@{
+    int intExamId = (int)ViewBag.ExamId;
+}
+<div class="my-page-wrap my-index-page-wrap">
+    <mt-header class="my-header-danger" title="全真模拟">
+        <mt-button slot="left" icon="back" @@click="goBack()">返回</mt-button>
+        <span slot="right">{{Location.City}}</span>
+    </mt-header>
+
+    <mt-swipe :auto="4000" class="my-ad-mint-swipe" :show-indicators="false">
+        <mt-swipe-item v-for="item in BannerList" :key="item.Id">
+            <img class="my-swipe-item-img" v-bind:src="item.PicPath" />
+        </mt-swipe-item>
+    </mt-swipe>
+
+    <div class="my-wrap" v-for="item in QuestionList.Data">
+        <div class="my-question-title">
+            <span class="my-question-answertype">{{getQuestionType(item.Question.AnswerType)}}</span>
+            <span>{{CurrentIndex}}，{{item.Question.Description}}</span>
+        </div>
+        <div class="my-question-image" v-if="existFile(item.Question.PicPath)">
+            <img :src="item.Question.PicPath" />
+        </div>
+        <div class="my-question-answer">
+            <mt-radio v-if="isSingleSelectQuestion(item.Question.AnswerType)"
+                      v-model="item.QuestionAnswer"
+                      :options="getOptions(item.Answers)">
+            </mt-radio>
+            <mt-checklist v-if="!isSingleSelectQuestion(item.Question.AnswerType)"
+                      v-model="item.QuestionAnswerList"
+                      :options="getOptions(item.Answers)">>
+            </mt-checklist>
+        </div>
+    </div>
+
+    <div class="my-wrap" v-show="!IsEnd">
+        <mt-button type="danger" class="my-left" :disabled="isFirst()" @@click="gotoPrev()">上一题</mt-button>
+        <mt-button type="danger" class="my-right" @@click="saveQuestion()">提交答案</mt-button>
+    </div>
+</div>
+
+<mt-tabbar class="my-mint-tabbar" v-model="TabbarSelected">
+    <mt-tab-item id="t0">
+        <img slot="icon" src="/Content/Mob/clock.png" />
+        <span class="my-danger-text">{{getTimeText(Minite)}}:{{getTimeText(Second)}}</span>
+    </mt-tab-item>
+    <mt-tab-item id="t1">
+        <img slot="icon" src="/Content/Mob/ts.png" />
+        <span class="my-danger-text">{{CurrentIndex}}/{{TotalCount}}</span>
+    </mt-tab-item>
+    <mt-tab-item id="t2">
+        <img slot="icon" src="/Content/Mob/jq.png" />
+        <span class="my-danger-text">交卷</span>
+    </mt-tab-item>
+</mt-tabbar>
+
+@section js{
+   <script>
+    function getVueOptions() {
+        return helper.getVueModelOptions({
+            data: {
+                TabbarSelected:"",
+                QuestionTypeId:@Model,
+                QuestionChapterId:0,
+                ExamId:@intExamId,
+                PracticeType:6,
+                Minite:45,
+                Second:0,
+                IsEnd:false,
+                BannerList: [],
+                CurrentIndex: 0,
+                TotalCount: 100,
+                QuestionListHistory:[],
+                QuestionList: [],
+                Interval: null
+            },
+            watch: {
+                "TabbarSelected": function (val, oldVal) {
+                    switch (val) {
+                        case "t2"://交卷
+                            this.EndExam(false);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            },
+            methods: {
+                getTimeText:function(time){
+                    if(time>=10){
+                        return time;
+                    }
+                    return '0'+time;
+                },
+                initPage: function () {
+                    var _this = this;
+                    helper.post("/Mob/Home/GetBannerList", {
+                        Id: 3,//Question
+                        PageParam: {
+                            PageIndex: 1,
+                            PageSize: 4
+                        }
+                    }, function (data) {
+                        _this.BannerList = data.Data;
+                    });
+
+                    _this.getQuestion();
+
+                    _this.Interval = window.setInterval(_this.checkTime, 1000);
+                },
+                setTime: function(){
+                    if(this.Second > 0){
+                        this.Second = this.Second - 1;
+                        return;
+                    }
+
+                    //this.Second == 0
+                    if(this.Minite > 0){
+                        this.Second = 59;
+                        this.Minite = this.Minite -1;
+                        return;
+                    }
+                },
+                checkTime: function(){
+                    var _this = this;
+                    if(this.IsEnd){
+                        window.clearInterval(_this.Interval);
+                        _this.Interval = null;
+                        return;
+                    }
+                    this.setTime();
+                    if(this.Minite != 0 || this.Second != 0){
+                        return;
+                    }
+                    helper.alert("考试时间已结束，系统将自动为你交卷。",function(){
+                        window.clearInterval(_this.Interval);
+                        _this.Interval = null;
+                        _this.EndExam(true);
+                    });
+                },
+                isSingleSelectQuestion: function (answerType) {
+                    return answerType == 1 || answerType == 2;
+                },
+                getQuestionType: function(answerType){
+                    switch (answerType) {
+                        case 1:
+                            return "判";
+                        case 2:
+                            return "单";
+                        default://3
+                            return "多";
+                    }
+                },
+                getPracticeModel:function(){
+                    return {
+                        QuestionTypeId: this.QuestionTypeId,
+                        QuestionChapterId: this.QuestionChapterId,
+                        ExamId: this.ExamId,
+                        Different: 1,
+                        PracticeType: this.PracticeType//Random
+                    };
+                },
+                gotoPrev: function(){
+                    var _this = this;
+                    if(_this.CurrentIndex > 1){
+                        _this.CurrentIndex = _this.CurrentIndex - 1;
+                        _this.QuestionList = _this.QuestionListHistory[_this.CurrentIndex-1];
+                    }
+                },
+                getQuestion: function(){
+                    var _this = this;
+                    if(_this.QuestionListHistory.length>_this.CurrentIndex){
+                        _this.QuestionList = _this.QuestionListHistory[_this.CurrentIndex];
+                        _this.CurrentIndex = _this.CurrentIndex + 1;
+                        return;
+                    }
+
+                    helper.post("/Mob/Question/GetQuestion",_this.getPracticeModel(),function(data){
+                        _this.QuestionList = data;
+                        _this.CurrentIndex = _this.CurrentIndex + 1;
+                        _this.QuestionListHistory.push(_this.QuestionList);
+                    });
+                },
+                getOptions:function(answers){
+                    var _this = this;
+                    var options = [];
+                    $.each(answers,function(index,item){
+                        options.push({
+                            label: _this.getCharIndex(index) + "，" + item.Description,
+                            value: '' + item.Id
+                        });
+                    });
+                    return options;
+                },
+                isFirst:function(){
+                    return this.CurrentIndex <= 1;
+                },
+                isLast:function(){
+                    return this.CurrentIndex >= this.TotalCount;
+                },
+                saveQuestion: function(){
+                    var _this = this;
+                    helper.post("/Mob/Question/Answer",{
+                        practiceModel: _this.getPracticeModel(),
+                        pageQuestionModel: _this.QuestionList
+                    },function(data){
+                        if(!_this.isLast()){
+                            _this.getQuestion();
+                            return;
+                        }
+                        helper.confirm("题目已做完，是否交卷?",function(){
+                            _this.EndExam(false);
+                        });
+                    });
+                },
+                getMarkGrade:function(mark){
+                    if(mark >= 90){
+                        return "<span class='my-mark-pass'>恭喜您，通过</span>";
+                    }
+                    return "<span class='my-mark-fail'>很遗憾，未通过</span>";
+                },
+                EndExam: function(bIsForce){
+                    var _this = this;
+                    if(bIsForce==null){
+                        bIsForce = true;
+                    }
+                    if(!bIsForce && !_this.isLast()){
+                        helper.confirm("您题目尚未做完，是否坚持交卷？",function(){
+                            _this.EndExam(true);
+                        },function(){
+                            _this.TabbarSelected = "";
+                        });
+                        return;
+                    }
+
+                    _this.IsEnd = true;
+                    helper.post("/Mob/Question/EndExam/"+ this.ExamId, null, function(data){
+                        helper.alert(_this.getMarkGrade(data)+"，当前考试分数为"+data+"。",function(){
+                            _this.goBack();
+                        });
+                    });
+                }
+            }
+        });
+    }
+</script>
+}

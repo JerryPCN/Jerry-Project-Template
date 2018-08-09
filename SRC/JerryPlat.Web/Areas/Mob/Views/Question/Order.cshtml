@@ -1,0 +1,319 @@
+﻿@model int
+    @{
+        int intQuestionChapterId = (int)ViewBag.QuestionChapterId;
+        int intPracticeType = (int)ViewBag.PracticeType;
+        int intExamId = (int)ViewBag.ExamId;
+    }
+<div class="my-page-wrap my-index-page-wrap">
+    <mt-header class="my-header-danger" :title="getTitle()">
+        <mt-button slot="left" icon="back" @@click="goBack()">返回</mt-button>
+        <span slot="right">{{Location.City}}</span>
+    </mt-header>
+
+    <mt-swipe :auto="4000" class="my-ad-mint-swipe" :show-indicators="false">
+        <mt-swipe-item v-for="item in BannerList" :key="item.Id">
+            <img class="my-swipe-item-img" v-bind:src="item.PicPath" />
+        </mt-swipe-item>
+    </mt-swipe>
+
+    <div class="my-wrap" v-for="item in QuestionList.Data">
+        <div class="my-question-title">
+            <span class="my-question-answertype">{{getQuestionType(item.Question.AnswerType)}}</span>
+            <span>{{CurrentIndex}}，{{item.Question.Description}}</span>
+        </div>
+        <div class="my-question-image" v-if="existFile(item.Question.PicPath)">
+            <img :src="item.Question.PicPath" />
+        </div>
+        <div class="my-question-answer">
+            <mt-radio v-if="isSingleSelectQuestion(item.Question.AnswerType)"
+                      v-model="item.QuestionAnswer"
+                      :options="getOptions(item.Answers)">
+            </mt-radio>
+            <mt-checklist v-if="!isSingleSelectQuestion(item.Question.AnswerType)"
+                      v-model="item.QuestionAnswerList"
+                      :options="getOptions(item.Answers)">>
+            </mt-checklist>
+        </div>
+
+        <div class="my-question-title" v-if="IsShowDetail">
+            <h5>详解：<b class="my-question-answer">{{getCurrectCharAnswer(item)}}</b></h5>
+            <div v-html="item.Question.Explanation"></div>
+        </div>
+    </div>
+
+    <div class="my-wrap" v-show="IsShowButton">
+        <mt-button type="danger" class="my-left" :disabled="isFirst()" @@click="saveQuestion(-1)">上一题</mt-button>
+        <mt-button type="danger" class="my-right" v-if="!IsShowDetail" @@click="saveQuestion(1)">提交答案</mt-button>
+        <mt-button type="danger" class="my-right" v-if="IsShowDetail" @@click="afterSaveQuestion(1)" :disabled="isLast()">下一题</mt-button>
+    </div>
+</div>
+
+<mt-tabbar class="my-mint-tabbar" v-model="TabbarSelected">
+    <mt-tab-item id="t0" v-show="IsShowButton">
+        <img slot="icon" :src="getFavoriteUrl()" />
+        <span>收藏</span>
+    </mt-tab-item>
+    <mt-tab-item id="t1">
+        <img slot="icon" src="/Content/Mob/cha.png" />
+        <span class="my-danger-text">{{Report.ErrorCount}}</span>
+    </mt-tab-item>
+    <mt-tab-item id="t2">
+        <img slot="icon" src="/Content/Mob/ts.png" />
+        <span class="my-danger-text">{{CurrentIndex}}/{{TotalCount}}</span>
+    </mt-tab-item>
+    <mt-tab-item id="t3">
+        <img slot="icon" src="/Content/Mob/gou.png" />
+        <span class="my-danger-text">{{Report.CurrectCount}}</span>
+    </mt-tab-item>
+    <mt-tab-item id="t4" v-show="IsShowButton">
+        <img slot="icon" src="/Content/Mob/xj.png" />
+        <span>详解</span>
+    </mt-tab-item>
+</mt-tabbar>
+
+@section js{
+   <script>
+    function getVueOptions() {
+        return helper.getVueModelOptions({
+            data: {
+                TabbarSelected:"",
+                QuestionTypeId:@Model,
+                QuestionChapterId:@(intQuestionChapterId),
+                ExamId: @intExamId,
+                PracticeType: @intPracticeType,
+                BannerList: [],
+                IsFavorite: false,
+                IsShowDetail: false,
+                IsShowButton: false,
+                CurrentIndex: 0,
+                TotalCount: 0,
+                Report: @Html.Raw(TypeHelper.ToJson<QuestionReportDto>()),
+                QuestionList: []
+            },
+            watch: {
+                "TabbarSelected": function (val, oldVal) {
+                    switch (val) {
+                        case "t0"://收藏
+                            this.setFavorite();
+                            this.IsShowDetail = false;
+                            break;
+                        case "t4"://详解
+                            this.IsShowDetail = !this.IsShowDetail;
+                            break;
+                        default:
+                            break;
+                    }
+                    this.TabbarSelected = "";
+                }
+            },
+            methods: {
+                getTitle:function(){
+                    if(this.QuestionChapterId>0){
+                        return "章节练习";
+                    }
+                    switch(this.PracticeType){
+                        case 3:
+                            return "我的收藏";
+                        case 4:
+                            return "我的错题";
+                        case 5:
+                            return "未做题";
+                        case 1:
+                        default:
+                            return "顺序练习";
+                    }
+                },
+                initPage: function () {
+                    var _this = this;
+                    helper.post("/Mob/Home/GetBannerList", {
+                        Id: 3,//Question
+                        PageParam: {
+                            PageIndex: 1,
+                            PageSize: 4
+                        }
+                    }, function (data) {
+                        _this.BannerList = data.Data;
+                    });
+
+                    _this.getQuestion(1);
+                },
+                isSingleSelectQuestion: function (answerType) {
+                    return answerType == 1 || answerType == 2;
+                },
+                getQuestionType: function(answerType){
+                    switch (answerType) {
+                        case 1:
+                            return "判";
+                        case 2:
+                            return "单";
+                        default://3
+                            return "多";
+                    }
+                },
+                getPracticeModel:function(diff){
+                    diff = diff || 0;
+                    return {
+                        QuestionTypeId: this.QuestionTypeId,
+                        QuestionChapterId: this.QuestionChapterId,
+                        ExamId: this.ExamId,
+                        Different: diff,
+                        PracticeType: this.PracticeType
+                    };
+                },
+                getQuestion: function(diff, isroll){
+                    if(isroll == null){
+                        isroll = true;
+                    }
+                    var _this = this;
+                    helper.post("/Mob/Question/GetQuestion",_this.getPracticeModel(diff),function(data){
+                        _this.IsShowDetail = false;
+                        _this.CurrentIndex = data.PageParam.PageIndex;
+                        _this.TotalCount = data.PageModel.TotalItem;
+                        _this.QuestionList = data;
+                        _this.getQuestionReport();
+
+                        if(_this.TotalCount == 0){
+                            _this.IsShowButton = false;
+                            helper.alert("【"+_this.getTitle() + "】暂时还没有可做的题目, 即将返回上一页面。",function(){
+                                _this.goBack();
+                            });
+                            return;
+                        }
+
+                        if(isroll && _this.isLast(1)){
+                            _this.IsShowButton = false;
+                            helper.confirm("本次练习已结束，是否重新开始练习？",function(){
+                                _this.resetQuestion();
+                            },function(){
+                                _this.IsShowButton = true;
+                                _this.getQuestion(0, false);
+                            });
+                            return;
+                        }
+                        _this.IsShowButton = true;
+                        _this.checkFavorite();
+                    });
+                },
+                getQuestionReport:function(){
+                    var _this = this;
+                    helper.post("/Mob/Question/GetQuestionReport",_this.getPracticeModel(),function(data){
+                        _this.Report = data;
+                    });
+                },
+                getOptions:function(answers){
+                    var _this = this;
+                    var options = [];
+                    $.each(answers,function(index,item){
+                        options.push({
+                            label: _this.getCharIndex(index) + "，" + item.Description,
+                            value: '' + item.Id
+                        });
+                    });
+                    return options;
+                },
+                getCurrectCharAnswer:function(question){
+                    var _this = this;
+                    var answers = [];
+                    $.each(question.Answers,function(index,item){
+                        if(item.IsAnswer){
+                            answers.push(_this.getCharIndex(index));
+                        }
+                    });
+                    return answers.join(',');
+                },
+                getCurrectAnswer:function(question){
+                    var answers = [];
+                    $.each(question.Answers,function(index,item){
+                        if(item.IsAnswer){
+                            answers.push(item.Id);
+                        }
+                    });
+                    return answers.sort(function(a,b){return a>b;}).join(',');
+                },
+                getSelectedAnswer:function(item){
+                    if(this.isSingleSelectQuestion(item.Question.AnswerType)){
+                        return item.QuestionAnswer;
+                    }
+                    return item.QuestionAnswerList.sort(function(a,b){return +a>+b;}).join(',');
+                },
+                isFirst:function(){
+                    return this.CurrentIndex <= 1;
+                },
+                isLast:function(diff){
+                    diff = diff || 0;
+                    return this.CurrentIndex >= this.TotalCount+diff;
+                },
+                isCurrect:function(item){
+                    if(this.QuestionList.Data.length==0){
+                        return false;
+                    }
+                    item = item || this.QuestionList.Data[0];
+                    return this.getCurrectAnswer(item) === this.getSelectedAnswer(item);
+                },
+                saveQuestion: function(diff){
+                    var _this = this;
+                    if(_this.isCurrect()){
+                        _this.afterSaveQuestion(diff);
+                        return;
+                    }
+
+                    _this.IsShowDetail=true;
+
+                    //helper.confirm("回答错误，是否查看详解？",function(){
+                    //    _this.IsShowDetail=true;
+                    //},function(){
+                    //    _this.afterSaveQuestion(diff);
+                    //});
+                },
+                afterSaveQuestion:function(diff){
+                    var _this = this;
+                    helper.post("/Mob/Question/Answer",{
+                        practiceModel: _this.getPracticeModel(diff),
+                        pageQuestionModel: _this.QuestionList
+                    },function(data){
+                        if(diff >= 0 && _this.isLast()){
+                            helper.confirm("本次练习已结束，是否重新开始练习？",function(){
+                                _this.resetQuestion();
+                            },function(){
+                                _this.getQuestionReport();
+                            });
+                            return;
+                        }else{
+                            _this.getQuestion(diff);
+                        }
+                    });
+                },
+                resetQuestion:function(){
+                    var _this = this;
+                    helper.post("/Mob/Question/Reset",{
+                        practiceModel: _this.getPracticeModel()
+                    },function(data){
+                        _this.getQuestion(1);
+                    });
+                },
+                getFavoriteUrl:function(){
+                    return this.IsFavorite?"/Content/Mob/like.active.png":"/Content/Mob/like.png";
+                },
+                checkFavorite:function(){
+                    var _this = this;
+                    helper.post("/Mob/Question/checkFavorite", {
+                        practiceModel: _this.getPracticeModel(),
+                        questionModel: _this.QuestionList.Data
+                    }, function(data){
+                        _this.IsFavorite = data;
+                    });
+                },
+                setFavorite: function(){
+                    var _this = this;
+                    helper.post("/Mob/Question/setFavorite", {
+                        practiceModel: _this.getPracticeModel(),
+                        questionModel: _this.QuestionList.Data
+                    }, function(data){
+                        _this.IsFavorite = !_this.IsFavorite;
+                    });
+                }
+            }
+        });
+    }
+</script>
+}

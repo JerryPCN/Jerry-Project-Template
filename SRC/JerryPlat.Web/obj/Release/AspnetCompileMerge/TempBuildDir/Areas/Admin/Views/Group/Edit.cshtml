@@ -1,0 +1,27 @@
+﻿<el-dialog :title="getTitle('角色')" :visible="List.ModelDialog.Visible" @@close="closeDialog('List.ModelDialog')"
+           :width="Common.DialogWidth"
+           :close-on-click-modal="Common.CloseOnClickModal"
+           :close-on-press-escape="Common.CloseOnPressEscape">
+    <el-form :model="List.ModelDialog.Model" status-icon :show-message="false" ref="List.ModelDialog"
+             :label-width="Common.FormLabelWidth"
+             :label-suffix="Common.FormLabelSuffix">
+        <el-form-item label="角色名称" prop="Group.Name" required>
+            <el-input placeholder="角色名称" v-model="List.ModelDialog.Model.Group.Name"></el-input>
+        </el-form-item>
+        <el-form-item label="操作权限" prop="NavigationIdList" required>
+            <el-tree :data="NavigationList"
+                     show-checkbox
+                     @@check-change="handleTreeCheckChange"
+                     node-key="Id"
+                     ref="navigationTree"
+                     :props="{label: 'PageName', children:'Children'}"
+                     :default-expand-all="true"
+                     :default-checked-keys="List.ModelDialog.Model.NavigationIdList">
+            </el-tree>
+        </el-form-item>
+    </el-form>
+    <div slot="footer" class="dialog-footer">
+        <el-button @@click="closeDialog('List.ModelDialog')">取 消</el-button>
+        <el-button type="primary" @@click="submitForm('List.ModelDialog', handleSave)">确 定</el-button>
+    </div>
+</el-dialog>

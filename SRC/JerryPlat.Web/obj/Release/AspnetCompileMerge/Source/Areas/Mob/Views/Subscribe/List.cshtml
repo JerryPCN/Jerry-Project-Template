@@ -1,0 +1,61 @@
+﻿<mt-header class="my-header-danger" title="我的预约">
+    <mt-button slot="left" icon="back" @@click="goBack()">返回</mt-button>
+    <span slot="right">{{Location.City}}</span>
+</mt-header>
+
+<div class="my-title">
+    <h2>我的预约列表</h2>
+</div>
+
+<mt-loadmore :bottom-method="getDataList" :bottom-all-loaded="LoadedAll" ref="loadmore">
+    <div class="my-wrap my-user-wrap" v-if="!IsLoaded">
+        正在加载中...
+    </div>
+    <div class="my-wrap my-user-wrap" v-if="List.length==0 && IsLoaded">
+        暂时还没有预约
+    </div>
+    <div class="my-wrap my-user-wrap" v-for="item in List">
+        <mt-cell title="时间" :value="getDate(item.Subscribe.TeachTime)"></mt-cell>
+        <mt-cell title="课程" :value="item.Course"></mt-cell>
+        <mt-cell title="场地" :value="item.Ground"></mt-cell>
+        <mt-cell title="教练" :value="item.Coach"></mt-cell>
+    </div>
+</mt-loadmore>
+
+@Html.Partial("_MyFooter")
+
+@section js{
+    <script>
+    function getVueOptions() {
+        return helper.getVueModelOptions({
+            data: {
+                IsLoaded:false,
+                LoadedAll: false,
+                CurrentIndex: 0,
+                TotalPage: null,
+                List: []
+            },
+            methods: {
+                getDataList: function () {
+                    var _this = this;
+                    if (_this.TotalPage != null && _this.CurrentIndex >= _this.TotalPage) {
+                        _this.LoadedAll = true;
+                        return;
+                    }
+                    _this.CurrentIndex = _this.CurrentIndex + 1;
+                    helper.post("/Mob/Subscribe/GetList", {
+                        PageIndex: _this.CurrentIndex,
+                        PageSize: 20
+                    }, function (data) {
+                        _this.IsLoaded = true;
+                        _this.TotalPage = data.PageModel.TotalPage;
+                        $.each(data.Data, function (index, item) {
+                            _this.List.push(item);
+                        });
+                    })
+                }
+            }
+        });
+    }
+    </script>
+}

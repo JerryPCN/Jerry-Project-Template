@@ -1,0 +1,413 @@
+﻿[v-cloak] {
+    display: none;
+}
+*{
+    box-sizing: border-box;
+    font-size:14px!important;
+}
+
+html,body{
+    padding: 0;
+    margin: 0;
+    background-color:#f1f1f1;
+}
+
+.my-app{
+    font-size:14px;
+}
+
+.my-index-button{
+    margin:30px 15px;
+    height:100px;
+}
+
+.my-index-button button{
+    width:100%;
+    height:100%;
+    font-size:28px;
+}
+
+.my-loadmore{
+    overflow: scroll;
+}
+
+.my-title{
+    text-align:center;
+    border-bottom:1px solid #ddd;
+    padding:0px 6px;
+}
+
+.my-title .my-time{
+    margin-top:-10px;
+    padding-bottom:10px;
+}
+
+.my-header-danger{
+    background-color:#ef4f4f;
+}
+.my-index-page-wrap {
+    padding-bottom:60px;
+}
+.my-page-wrap,.my-index-page-wrap{
+    overflow: auto;
+    height: 100%;
+}
+
+.my-mint-swipe{
+    height: 160px;
+    background-color:#f1f1f1;
+}
+
+.my-ad-mint-swipe{
+    height: 100px;
+    background-color:#f1f1f1;
+}
+
+.my-swipe-item-img{
+    width:100%;
+    height:100%;
+}
+
+.my-mint-popup{
+    width:100%;
+}
+
+.my-mob-verifycode{
+    width:90px;
+    height:41px;
+}
+
+.mint-cell-value{
+    height:41px;
+    padding-left:10px;
+}
+
+.my-cell-value-textarea{
+    height:70px;
+}
+
+.mint-cell-wrapper{
+    padding:0px 10px;
+    background-image:none;
+}
+
+.my-form .mint-cell-wrapper{
+    border-bottom:1px solid #ddd;
+}
+
+.my-invalid-input div.mint-cell-value,
+.my-invalid-input input.mint-field-core{
+    background-color:antiquewhite;
+}
+
+.my-submit{
+    padding:30px 20px;
+}
+.my-submit button{
+    width:100%;
+    height:50px;
+}
+
+.my-status{
+    padding:10px;
+    text-align:center;
+    border-bottom:1px solid #ddd;
+    margin-bottom:20px;
+    color:#ef4f4f;
+}
+
+.my-footer{
+    border-top: 1px solid #ddd;
+    padding-top: 20px;
+    margin-top:20px;
+    text-align:center;
+}
+.my-footer a{
+    text-decoration:none;
+}
+
+.my-wrap{
+  background:#fff;
+  margin:15px 0;
+  padding:15px;
+}
+
+.my-wrap:after{
+    content:" ";
+    display:block;
+    visibility:hidden;
+    height:0;
+    clear:both;
+}
+
+.my-keyboard-wrap{
+    position:relative;
+}
+
+.my-keyboard-wrap .my-index-function{
+    float:left;
+    width:50%;
+    border:4px solid #f1f1f1;
+    text-align:center;
+    padding:15px 0px;
+    border-radius:70px;
+}
+
+.my-keyboard-wrap .my-border-button{
+    border-bottom:2px solid #f1f1f1;
+}
+.my-keyboard-wrap .my-border-top{
+    border-top:2px solid #f1f1f1;
+}
+
+.my-keyboard-wrap .my-padding-right{
+    padding-right:10%;
+    border-right:2px solid #f1f1f1;
+}
+.my-keyboard-wrap .my-padding-left{
+    border-left:2px solid #f1f1f1;
+    padding-left:10%;
+}
+
+.my-keyboard-wrap .my-index-middle-function {
+    position:absolute;
+    left:50%;
+    top:50%;
+    margin:-55px 0px 0px -55px;
+}
+.my-wrap .my-function-pannel-middle{
+    padding-top:23px;
+}
+.my-wrap .my-function-pannel-middle{
+    border-radius:55px;
+}
+
+.my-wrap .my-function-pannel .my-function{
+   width:100%;
+}
+
+.my-wrap .my-function{
+    float:left;
+    width:33.333333333%;
+    text-align:center;
+    margin:8px 0px;
+}
+.my-wrap .my-function .my-function-item{
+     text-align:center;
+     margin:6px auto;
+}
+.my-wrap .my-function-item img{
+    width:40px;
+    height:40px;
+}
+
+.my-wrap .my-news{
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow: ellipsis;/*...*/
+    padding-right:10px;
+}
+
+.my-wrap .my-news .my-title{
+    padding:0 10px;
+    margin-right:10px;
+    color: #ef4f4f;
+    border-right:1px solid #666;
+    float:left;
+}
+.my-wrap .my-news a{
+    color:#000;
+    text-decoration:none;
+}
+
+.my-mint-tabbar{
+    position:fixed;
+}
+
+.my-content{
+    padding: 20px 15px;
+    width:100%;
+    line-height: 20px;
+}
+
+.my-content p{
+    text-indent:2em;
+}
+
+.my-content p img{
+    margin-left:-2em;
+}
+.my-content img{
+    max-width:100%;
+}
+
+.my-question-title,.my-question-description{
+    padding-left:10px;
+}
+.my-question-description{
+    color:#888;
+}
+.my-mint-cell{
+    border-top: 1px solid #f1f1f1;
+}
+
+.my-cell-danger .mint-cell-title,
+.my-cell-danger .mint-cell-value{
+    color:#ef4f4f;
+}
+
+.my-danger-text{
+    color:#ef4f4f;
+}
+
+.my-question-title{
+    font-size:20px;
+    font-weight:bold;
+}
+
+.my-question-chapter-title{
+    padding-left:10px;
+    font-weight:bolder;
+}
+
+.my-question-title .my-question-answer{
+    color:green;
+}
+
+.my-question-title .my-question-answertype{
+    padding:2px 5px;
+    background-color: green;
+    color:#fff;
+}
+.my-question-image{
+    padding: 20px 10px;
+}
+
+.my-question-image img{
+    width:100%;
+}
+
+.my-left{
+    float:left;
+}
+.my-right{
+    float:right;
+}
+.my-mark-pass{
+    font-weight:bold;
+    color:green;
+}
+.my-mark-fail{
+    font-weight:bold;
+    color:red;
+}
+.my-user-avatar{
+    width:70px;
+    height:70px;
+    border-radius:35px;
+}
+.my-user-nickname{
+    padding-left:50px;
+    font-size:26px;
+}
+.my-user-wrap .mint-cell{
+    background-image:none;
+}
+
+.my-member-score{
+    font-size:26px;
+    font-weight:bold;
+}
+
+.my-member-id{
+    font-size:26px;
+    font-weight:bold;
+    color:#ef4f4f;
+}
+
+.my-share-img img{
+    width:100%;
+}
+
+.my-share-text{
+    text-align:center;
+}
+
+.my-mint-share{
+    padding:20px 35px;
+    background:none;
+    top:20%;
+}
+
+.my-mint-share img{
+    max-width:100%;
+}
+
+.my-button-right{
+    float:right;
+}
+
+.my-text-info{
+    color:#909399;
+}
+.my-text-success{
+    color:#67c23a;
+}
+.my-text-danger{
+    color:#f56c6c;
+}
+
+.my-list-icon {
+    padding:0px 10px 0px 5px;
+}
+
+.my-list-content{
+    margin-left:50px;
+    padding:0px 5px 0px 20px;
+    border-left:1px dotted #ccc;
+}
+
+.my-list-content a{
+   text-decoration:none;
+}
+
+.my-list-content div.my-label{
+    display:inline-block;
+    width:112px;
+    color:#444;
+    text-align:right;
+    line-height:25px;
+}
+
+.my-list-content div.my-value{
+    display:inline-block;
+    font-weight:bold;
+    line-height:25px;
+}
+
+.my-popup-button{
+    background-color:#ddd;
+    text-align:right;
+    padding:10px 15px;
+}
+
+.my-pay-way{
+    text-align:center;
+}
+
+.my-pay-way img{
+    width:40%;
+}
+
+.my-note{
+    text-align:center;
+    padding:5px 15px;
+}
+
+.my-popup-payway{
+    text-align:center;
+}
+.my-popup-payway img{
+    max-width:80%;
+    max-height:80%;
+}

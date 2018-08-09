@@ -1,0 +1,85 @@
+﻿@{
+    Layout = null;
+}
+
+<!-- index.html -->
+<html>
+<head>
+    <link href="/Content/vue.element.ui.2.2.2.min.css" rel="stylesheet" />
+    <style>
+        .el-dialog__body {
+            border-top: 1px solid #eeeeee;
+            border-bottom: 1px solid #eeeeee;
+        }
+    </style>
+    <script src="/Scripts/vue.min.js"></script>
+    <script src="/Scripts/vue.element.ui.2.2.2.min.js"></script>
+</head>
+<body>
+    <div id="app">
+        <template>
+            <el-button type="text" @@click="outerVisible = true">点击打开外层 Dialog</el-button>
+            <el-dialog title="外层 Dialog" :visible.sync="outerVisible" width="60%">
+                <el-dialog width="30%" title="内层 Dialog" :visible.sync="innerVisible" append-to-body></el-dialog>
+                <div slot="footer" class="dialog-footer">
+                    <el-button @@click="outerVisible = false">取 消</el-button>
+                    <el-button type="primary" @@click="innerVisible = true">打开内层 Dialog</el-button>
+                </div>
+            </el-dialog>
+
+            <el-tree :data="TreeList" :props="{
+              children: 'children',
+              label: 'label'
+          }"></el-tree>
+        </template>
+    </div>
+    <script>
+      new Vue({
+        el:"#app",
+        data:{
+          outerVisible: false,
+          innerVisible: false,
+          TreeList: [{
+              label: '一级 1',
+              children: [{
+                  label: '二级 1-1',
+                  children: [{
+                      label: '三级 1-1-1'
+                  }]
+              }]
+          }, {
+              label: '一级 2',
+              children: [{
+                  label: '二级 2-1',
+                  children: [{
+                      label: '三级 2-1-1'
+                  }]
+              }, {
+                  label: '二级 2-2',
+                  children: [{
+                      label: '三级 2-2-1'
+                  }]
+              }]
+          }, {
+              label: '一级 3',
+              children: [{
+                  label: '二级 3-1',
+                  children: [{
+                      label: '三级 3-1-1'
+                  }]
+              }, {
+                  label: '二级 3-2',
+                  children: [{
+                      label: '三级 3-2-1'
+                  }]
+              }]
+          }],
+          defaultProps: {
+              children: 'children',
+              label: 'label'
+          }
+        }
+      })
+    </script>
+</body>
+</html>

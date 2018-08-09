@@ -1,0 +1,216 @@
+﻿<div class="my-main-body-button">
+    <span class="my-main-body-title">
+        <i class="el-icon-view"></i>
+        报名学车管理
+    </span>
+    <el-date-picker v-model="StartTime"
+                    type="date"
+                    value-format="yyyy-MM-dd"
+                    placeholder="选择开始日期">
+    </el-date-picker>
+    <el-date-picker v-model="EndTime"
+                    type="date"
+                    value-format="yyyy-MM-dd"
+                    placeholder="选择截至日期">
+    </el-date-picker>
+</div>
+<div class="my-main-body-button">
+    <el-select v-model="CourseId" placeholder="请选择科目">
+        <el-option :key="0" label="所有科目" :value="0"></el-option>
+        <el-option v-for="item in CourseList"
+                   :key="item.Id"
+                   :label="item.Name"
+                   :value="item.Id">
+        </el-option>
+    </el-select>
+    <el-select v-model="EnrollStatusId" placeholder="请选择进度类型">
+        <el-option :key="0" label="所有支付状态" :value="0"></el-option>
+        <el-option v-for="item in EnrollStatusList"
+                   :key="item.Id"
+                   :label="item.Name"
+                   :value="item.Id">
+        </el-option>
+    </el-select>
+    <el-select v-model="PayType" placeholder="请选择支付类型">
+        <el-option key="" label="所有支付类型" value=""></el-option>
+        <el-option v-for="item in PayTypeList"
+                   :key="item.Id"
+                   :label="item.Name"
+                   :value="item.Id">
+        </el-option>
+    </el-select>
+    <el-button type="primary" @@click="exportExcel()"><i class="el-icon-download"></i> 导出</el-button>
+</div>
+<el-table :data="List.Data" border stripe
+          header-row-class-name="my-main-body-table-header"
+          @@sort-change="function(sort){handleSortChange(sort,'List');}"
+          style="width: 100%">
+    <el-table-column label="姓名" prop="Name" sortable="custom">
+        <template slot-scope="scope">
+            <p><b>{{scope.row.Enroll.Name}}</b></p>
+            <p>{{scope.row.Enroll.IdCard}}</p>
+            <p>{{scope.row.Enroll.Phone}}</p>
+        </template>
+    </el-table-column>
+    <el-table-column label="所选科目" prop="CourseId" sortable="custom">
+        <template slot-scope="scope">
+            <p><b>{{scope.row.Course}}</b></p>
+        </template>
+    </el-table-column>
+    <el-table-column label="城市" prop="City" sortable="custom">
+        <template slot-scope="scope">
+            <p><b>{{scope.row.Enroll.City}}</b></p>
+            <p><b>{{scope.row.Enroll.School}}</b></p>
+            <p>{{scope.row.Enroll.Address}}</p>
+        </template>
+    </el-table-column>
+    <el-table-column label="状态" prop="Status" sortable="custom">
+        <template slot-scope="scope">
+            <p><b :class="getStatusClass(scope.row.Enroll.Status)" v-html="getStatusHtml(scope.row)"></b></p>
+            <p class="my-text-danger">备注：{{scope.row.Enroll.Note}}</p>
+        </template>
+    </el-table-column>
+    <el-table-column label="报名时间" prop="UpdateTime" sortable="custom">
+        <template slot-scope="scope">
+            {{getDate(scope.row.Enroll.UpdateTime)}}
+        </template>
+    </el-table-column>
+    <el-table-column label="操作" width="180" align="center">
+        <template slot-scope="scope">
+            <el-button v-if="scope.row.Enroll.Status != 2" size="mini" @@click="handleEdit(scope.$index, scope.row, 'List.NoteDialog')"><i class="el-icon-edit"></i> 备注</el-button>
+            <el-button type="danger" v-if="scope.row.Enroll.Status != 2" size="mini" @@click="handleEdit(scope.$index, scope.row)"><i class="el-icon-edit"></i> 收款</el-button>
+            <el-button type="danger" v-if="scope.row.Enroll.Status == 2" size="mini" @@click="handleReverse(scope.$index, scope.row)"><i class="el-icon-back"></i> 撤销收款</el-button>
+        </template>
+    </el-table-column>
+</el-table>
+
+@Html.Partial("_pagination", "List")
+
+@Html.Partial("Edit")
+@Html.Partial("Note")
+
+@section js{
+<script>
+    function getVueOptions() {
+        return helper.getPageVueOptions("Enroll", function () {
+                return @Html.Raw(TypeHelper.ToJson<EnrollDto>());
+            }, {
+            data: {
+                StartTime: null,
+                EndTime: null,
+                CourseId: 0,
+                CourseList: [],
+                EnrollStatusId: 0,
+                EnrollStatusList: [
+                    { Id: 1, Name: "用户提交订单，尚未支付" },
+                    { Id: 2, Name: "用户支付成功。" },
+                    { Id: 3, Name: "用户支付失败。" },
+                    { Id: 4, Name: "用户已支付申请。" },
+                    { Id: 5, Name: "支付申请未通过。" },
+                    { Id: 6, Name: "支付已撤销。" }
+                ],
+                PayType: "",
+                PayTypeList: [   
+                    { Id: "微信", Name: "微信二维码支付。" },
+                    { Id: "支付宝", Name: "支付宝二维码支付。" }
+                ],
+                List: {
+                    NoteDialog: {
+                        Visible: false,
+                        Model: @Html.Raw(TypeHelper.ToJson<EnrollDto>())
+                    }
+                }
+            },
+            watch: {
+                "StartTime": function (val) {
+                    this.getDataList();
+                },
+                "EndTime": function (val) {
+                    this.getDataList();
+                },
+                "PayType": function (val) {
+                    this.getDataList();
+                },
+                "CourseId": function (val) {
+                    this.getDataList();
+                },
+                "EnrollStatusId": function (val) {
+                    this.getDataList();
+                }
+            },
+            mounted: function () {
+                var _this = this;
+                helper.post("/Admin/Course/GetList", helper.default.AllPageParam, function (data) {
+                    _this.CourseList = data.Data;
+                });
+            },
+            methods: {
+                getSearchModel: function (table) {
+                    table = table || helper.default.Vue.DefaultTable;
+                    return {
+                        Id: this.CourseId,
+                        Id1: this.EnrollStatusId,
+                        SearchText: this.PayType,
+                        StartTime: this.StartTime,
+                        EndTime: this.EndTime,
+                        PageParam: helper.getContext(this, table).PageParam,
+                        Sort: this[table].Sort
+                    };
+                },
+                getStatusClass: function (status) {
+                    return status == 2 ? "my-text-success":"my-text-danger";
+                },
+                getStatusHtml: function (row) {
+                    var strStatus = this.getItemValue(this.EnrollStatusList, row.Enroll.Status);
+                    if (row.Enroll.Status == 2) {
+                        strStatus = row.Enroll.PayType + "<br/>" + strStatus+ "<br/>" + this.getDate(row.Enroll.PaidTime);
+                    }
+                    return strStatus;
+                },
+                handleApprove: function (formName, action, aftersubmitcallback, table) {
+                    var _this = this;
+                    helper.post("/Admin/Enroll/Approve", _this.List.ModelDialog.Model.Enroll, function (data) {
+                        helper.resetPage(_this[table].PageParam);
+                        _this.closeDialog(formName, null, _this.List.ModelDialog);
+                        aftersubmitcallback(table);
+                    });
+                },
+                handleReverse: function(index, row){
+                    var _this = this;
+                    helper.confirm("确定要撤销收款吗？",function(){
+                        helper.post("/Admin/Enroll/Reverse", row.Enroll, function(data){
+                            helper.alert("撤销收款成功。",function(){
+                                _this.getDataList();
+                            });
+                        });
+                    });
+                },
+                exportExcel: function (table) {
+                    table = table || helper.default.Vue.DefaultTable;
+                    var strQueryString = "Id="+this.CourseId
+                                        +"&Id1="+this.EnrollStatusId
+                                        +"&SearchText="+this.PayType;
+
+                    if (!helper.isNullOrEmpty(this.StartTime)) {
+                        strQueryString += "&StartTime=" + this.StartTime;
+                    }
+
+                    if (!helper.isNullOrEmpty(this.EndTime)) {
+                        strQueryString += "&EndTime=" + this.EndTime;
+                    }
+                    
+                    if (!helper.isNullOrEmpty(this[table].Sort)) {
+                        strQueryString += "&Sort=" + this[table].Sort;
+                    }
+
+                    if (!helper.isNullOrEmpty(strQueryString)) {
+                        strQueryString = "?" + strQueryString;
+                    }
+
+                    window.open("/Admin/Enroll/Export" + strQueryString);
+                }
+            }
+        });
+    }
+</script>
+}

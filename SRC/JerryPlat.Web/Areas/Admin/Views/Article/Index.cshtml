@@ -1,0 +1,108 @@
+﻿<link href="/Content/quill.snow.1.3.6.css" rel="stylesheet" />
+<div class="my-main-body-button">
+    <span class="my-main-body-title">
+        <i class="el-icon-view"></i>
+        优杰头条
+    </span>
+    <el-select v-model="ArticleTypeId" placeholder="请选择文章类型">
+        <el-option :key="0" label="所有类型" :value="0"></el-option>
+        <el-option v-for="item in ArticleTypeList"
+                   :key="item.Id"
+                   :label="item.Name"
+                   :value="item.Id">
+        </el-option>
+    </el-select>
+    <el-button type="primary" @@click="handleAdd()"><i class="el-icon-plus"></i> 添加</el-button>
+    <el-button type="danger" @@click="handleDeleteList()"><i class="el-icon-delete"></i> 批量删除</el-button>
+</div>
+<el-table :data="List.Data" border stripe
+          header-row-class-name="my-main-body-table-header"
+          @@selection-change="handleSelectionChange"
+          @@sort-change="function(sort){handleSortChange(sort,'List');}"
+          style="width: 100%">
+    <el-table-column type="selection" width="55" align="center"></el-table-column>
+    <el-table-column label="文章类型" prop="ArticleType">
+        <template slot-scope="scope">
+            {{getItemValue(ArticleTypeList,scope.row.Article.ArticleType)}}
+        </template>
+    </el-table-column>
+    <el-table-column label="标题" prop="Title">
+        <template slot-scope="scope">
+            {{scope.row.Article.Title}}
+        </template>
+    </el-table-column>
+    <el-table-column label="移动端链接">
+        <template slot-scope="scope">
+            /Mob/Article/Detail/{{scope.row.Article.Id}}
+        </template>
+    </el-table-column>
+    <el-table-column label="添加时间" prop="CreateTime" sortable="custom">
+        <template slot-scope="scope">
+            {{scope.row.Article.UpdateTime}}
+        </template>
+    </el-table-column>
+    <el-table-column label="添加人" prop="AdminUserName"></el-table-column>
+    <el-table-column label="操作" width="180" align="center">
+        <template slot-scope="scope">
+            <el-button size="mini" @@click="handleEdit(scope.$index, scope.row)"><i class="el-icon-edit"></i> 编辑</el-button>
+            <el-button size="mini" type="danger" @@click="handleDelete(scope.$index, scope.row.Article)"><i class="el-icon-delete"></i> 删除</el-button>
+        </template>
+    </el-table-column>
+</el-table>
+
+@Html.Partial("_pagination", "List")
+
+@Html.Partial("Edit")
+
+@section js{
+    <script src="/Scripts/quill.min.js"></script>
+    <script src="/Scripts/vue-quill-editor.js"></script>
+    <script>
+        Vue.use(window.VueQuillEditor);
+        function getVueOptions() {
+            return helper.getPageVueOptions("Article", function () {
+                return @Html.Raw(TypeHelper.ToJson<ArticleDto>());
+            }, {
+                data: {
+                    ArticleTypeId: 0,
+                    ArticleTypeList: [
+                        { Id: 1, Name: "优杰头条" },
+                        { Id: 2, Name: "试学政策" },
+                        { Id: 3, Name: "考场分布" },
+                        { Id: 4, Name: "学车流程" },
+                        { Id: 5, Name: "考试预约" }
+                    ]
+                },
+                watch: {
+                    "ArticleTypeId": function (val) {
+                        this.getDataList();
+                    }
+                },
+                methods: {
+                    getSearchModel: function (table) {
+                        table = table || helper.default.Vue.DefaultTable;
+                        return {
+                            Id: this.ArticleTypeId,
+                            PageParam: helper.getContext(this, table).PageParam,
+                            Sort: this[table].Sort
+                        };
+                    },
+                    handleAddBefore: function (model) {
+                        model.Article.ArticleType = this.ArticleTypeList[0].Id;
+                        return model;
+                    },
+                    handleEditBefore: function (model) {
+                        var _this = this;
+                        helper.post("/Admin/Article/GetById/" + model.Article.Id, null, function (data) {
+                            _this.List.ModelDialog.Model.Article.Content = data.Content;
+                        });
+                        return model;
+                    },
+                    getItemId: function (item) {
+                        return item.Article.Id
+                    }
+                }
+            });
+        }
+    </script>
+}

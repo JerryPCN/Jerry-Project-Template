@@ -1,0 +1,31 @@
+﻿<el-dialog :title="getTitle('优杰头条')" :visible="List.ModelDialog.Visible" @@close="closeDialog('List.ModelDialog')"
+           :width="Common.DialogWidth"
+           :close-on-click-modal="Common.CloseOnClickModal"
+           :close-on-press-escape="Common.CloseOnPressEscape">
+    <el-form :model="List.ModelDialog.Model" status-icon :show-message="false" ref="List.ModelDialog"
+             :label-width="Common.FormLabelWidth"
+             :label-suffix="Common.FormLabelSuffix">
+        <el-form-item label="文章类型" prop="Article.ArticleType" required>
+            <el-select class="my-form-item-el-select" v-model="List.ModelDialog.Model.Article.ArticleType" placeholder="请选择文章类型">
+                <el-option v-for="item in ArticleTypeList"
+                           :key="item.Id"
+                           :label="item.Name"
+                           :value="item.Id">
+                </el-option>
+            </el-select>
+        </el-form-item>
+        <el-form-item label="标题" prop="Article.Title" required>
+            <el-input placeholder="标题" v-model="List.ModelDialog.Model.Article.Title"></el-input>
+        </el-form-item>
+        <el-form-item label="内容" :label-width="Common.FormLabelWidth" prop="Article.Content" required>
+            <quill-editor v-model="List.ModelDialog.Model.Article.Content"
+                          ref="myQuillEditor"
+                          :options="{placeholder:'请输入文章内容...'}">
+            </quill-editor>
+        </el-form-item>
+    </el-form>
+    <div slot="footer" class="dialog-footer">
+        <el-button @@click="closeDialog('List.ModelDialog')">取 消</el-button>
+        <el-button type="primary" @@click="submitForm('List.ModelDialog', handleSave)">确 定</el-button>
+    </div>
+</el-dialog>

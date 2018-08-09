@@ -1,0 +1,67 @@
+﻿<mt-header class="my-header-danger" title="考试记录">
+    <mt-button slot="left" icon="back" @@click="goBack()">返回</mt-button>
+    <span slot="right">{{Location.City}}</span>
+</mt-header>
+
+<div class="my-title">
+    <h2>我的考试记录</h2>
+</div>
+
+<mt-loadmore :bottom-method="getDataList" :bottom-all-loaded="LoadedAll" ref="loadmore">
+    <div class="my-wrap my-user-wrap" v-if="!IsLoaded">
+        正在加载中...
+    </div>
+    <div class="my-wrap my-user-wrap" v-if="List.length==0 && IsLoaded">
+        暂时还没有考试
+    </div>
+    <div class="my-wrap my-user-wrap" v-for="item in List">
+        <mt-cell title="题库类型" :value="item.QuestionType"></mt-cell>
+        <mt-cell title="总分数"><span v-html="getMarkGrade(item.Exam.TotalMark,item.Exam.IsEnd)"></span></mt-cell>
+        <mt-cell title="开始时间" :value="getDate(item.Exam.StartTime)"></mt-cell>
+        <mt-cell title="结束时间" :value="getDate(item.Exam.EndTime)"></mt-cell>
+    </div>
+</mt-loadmore>
+
+@Html.Partial("_MyFooter")
+
+@section js{
+    <script>
+    function getVueOptions() {
+        return helper.getVueModelOptions({
+            data: {
+                IsLoaded:false,
+                LoadedAll: false,
+                CurrentIndex: 0,
+                TotalPage: null,
+                List: []
+            },
+            methods: {
+                getMarkGrade: function (mark, isEnd) {
+                    if(mark >= 90){
+                        return "<span class='my-mark-pass'>" + mark + "分 (通过)</span>";
+                    }
+                    return "<span class='my-mark-fail'>" + mark + "分 (" + (isEnd ? "未通过" : "未交卷") + ")</span>";
+                },
+                getDataList: function () {
+                    var _this = this;
+                    if (_this.TotalPage != null && _this.CurrentIndex >= _this.TotalPage) {
+                        _this.LoadedAll = true;
+                        return;
+                    }
+                    _this.CurrentIndex = _this.CurrentIndex + 1;
+                    helper.post("/Mob/Question/GetResultList", {
+                        PageIndex: _this.CurrentIndex,
+                        PageSize: 20
+                    }, function (data) {
+                        _this.IsLoaded = true;
+                        _this.TotalPage = data.PageModel.TotalPage;
+                        $.each(data.Data, function (index, item) {
+                            _this.List.push(item);
+                        });
+                    })
+                }
+            }
+        });
+    }
+    </script>
+}

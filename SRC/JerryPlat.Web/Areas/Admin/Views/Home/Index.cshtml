@@ -1,0 +1,57 @@
+﻿@{
+    ViewBag.Title = "登陆";
+    Layout = "~/Areas/Admin/Views/Shared/_BaseLayout.cshtml";
+}
+@section css{
+    <style>
+        body {
+            background-color: #104F67;
+        }
+    </style>
+}
+
+<el-form class="my-login-form"
+         :model="Model"
+         status-icon
+         :show-message="false"
+         ref="Model"
+         label-width="80px"
+         :label-suffix="Common.FormLabelSuffix">
+    <h2 class="my-text-center">优杰学车系统登陆</h2>
+    <el-form-item label="用户名"
+                  prop="UserName"
+                  :rules="[{required:true, message:'请输入用户名'}]">
+        <el-input v-model="Model.UserName" placeholder="用户名" autofocus></el-input>
+    </el-form-item>
+    <el-form-item label="密码"
+                  prop="Password"
+                  :rules="[{required:true, message:'请输入密码'}]">
+        <el-input type="password" v-model="Model.Password" placeholder="密码" @@keyup.enter.native="submitForm('Model',login)"></el-input>
+    </el-form-item>
+    <el-form-item>
+        <el-button type="primary" @@click="submitForm('Model',login)">登 陆</el-button>
+        <el-button @@click="resetForm('Model')">重 置</el-button>
+    </el-form-item>
+</el-form>
+
+@section js{
+    <script>
+        function getVueOptions() {
+            return helper.getVueModelOptions({
+                data: {
+                    Model: {
+                        UserName: "",
+                        Password: ""
+                    }
+                },
+                methods: {
+                    login: function () {
+                        helper.post("/Admin/Home/Login?ReturnURL=" + helper.getQueryString('returnURL'), this.Model, function (data) {
+                            helper.redirect(data);
+                        });
+                    }
+                }
+            });
+        }
+    </script>
+}

@@ -1,0 +1,41 @@
+﻿<el-dialog title="数据导入" :visible="Import.ModelDialog.Visible" @@close="closeDialog('Import.ModelDialog')"
+           :width="Common.DialogWidth"
+           :close-on-click-modal="Common.CloseOnClickModal"
+           :close-on-press-escape="Common.CloseOnPressEscape">
+    <el-form :model="Import.ModelDialog.Model" status-icon :show-message="false" ref="Import.ModelDialog"
+             :label-width="Common.FormLabelWidth"
+             :label-suffix="Common.FormLabelSuffix">
+        <el-form-item label="Excel模板文件">
+            <a href="/File/Template/MemberTemplate.xlsx">MemberTemplate.xlsx</a>
+            <p class="my-text-danger">
+                性别列可填（男，Male，1），（女，Famale，0）
+            </p>
+            <p class="my-text-danger">
+                密码，默认值为 @(SystemConfigModel.Instance.DefaultPassword)
+            </p>
+            <p class="my-text-danger">
+                加入时间的格式为“yyyy-MM-dd HH:mm:ss”，如 2018-05-20 08:08:08 
+            </p>
+        </el-form-item>
+        <el-form-item label="Excel文件" prop="ExcelPath" required>
+            <el-input placeholder="Excel文件" :disabled="true" class="my-upload" :value="getFileName(Import.ModelDialog.Model.ExcelPath)">
+                <template slot="append">
+                    <el-upload action="/Admin/Upload"
+                               :multiple="false"
+                               :show-file-list="false"
+                               :data="getUploadData('Import')"
+                               :before-upload="function(file){return handleImportBeforeUpload(0, Import.ModelDialog, file);}"
+                               :on-progress="function(event,file,fileList){handleUploadProgress(0, Import.ModelDialog, event, file, fileList);}"
+                               :on-success="function(response,file,fileList){handleUploadSuccess('ExcelPath', Import.ModelDialog, response, file, fileList);}">
+                        <el-button slot="trigger" size="small" type="primary">点击上传Excel</el-button>
+                    </el-upload>
+                </template>
+            </el-input>
+            <el-progress v-show="getProgress(Import.ModelDialog,0)>0" :show-text="false" :percentage="getProgress(Import.ModelDialog,0)" status="success"></el-progress>
+        </el-form-item>
+    </el-form>
+    <div slot="footer" class="dialog-footer">
+        <el-button @@click="closeDialog('Import.ModelDialog')">取 消</el-button>
+        <el-button type="primary" @@click="submitForm('Import.ModelDialog', handleSave, '/Admin/Member/Import', importCallback)">自动导入</el-button>
+    </div>
+</el-dialog>

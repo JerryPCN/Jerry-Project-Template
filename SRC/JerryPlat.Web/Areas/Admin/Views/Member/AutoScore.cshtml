@@ -1,0 +1,21 @@
+﻿<el-dialog title="自动优币更新" :visible="AutoScore.ModelDialog.Visible" @@close="closeDialog('AutoScore.ModelDialog')"
+           :width="Common.DialogWidth"
+           :close-on-click-modal="Common.CloseOnClickModal"
+           :close-on-press-escape="Common.CloseOnPressEscape">
+    <el-form :model="AutoScore.ModelDialog.Model" status-icon :show-message="false" ref="AutoScore.ModelDialog"
+             :label-width="Common.FormLabelWidth"
+             :label-suffix="Common.FormLabelSuffix">
+        <el-form-item label="选择月份" prop="Id" required>
+            <el-date-picker v-model="AutoScore.ModelDialog.Model.Id"
+                            type="month"
+                            :picker-options="pickerOptions"
+                            value-format="yyyy-MM-dd"
+                            placeholder="选择月">
+            </el-date-picker>
+        </el-form-item>
+    </el-form>
+    <div slot="footer" class="dialog-footer">
+        <el-button @@click="closeDialog('AutoScore.ModelDialog')">取 消</el-button>
+        <el-button type="primary" @@click="submitForm('AutoScore.ModelDialog', handleSave, '/Admin/Member/AutoScore', autoScoreCallback)">自动更新</el-button>
+    </div>
+</el-dialog>

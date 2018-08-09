@@ -1,0 +1,119 @@
+﻿@model Member
+<mt-header class="my-header-danger" title="提现申请">
+    <mt-button slot="left" icon="back" @@click="goBack()">返回</mt-button>
+    <span slot="right">{{Location.City}}</span>
+</mt-header>
+
+<div class="my-wrap my-user-wrap">
+    <mt-cell>
+        <img class="my-user-avatar" slot="icon" src="@(Model.Avatar)">
+        <span class="my-user-nickname" slot="title">@(Model.NickName)</span>
+    </mt-cell>
+</div>
+
+<div class="my-wrap my-user-wrap">
+    当前邦币：<span class="my-member-score">{{Score}}</span>
+</div>
+
+<div class="my-form">
+    <mt-field label="申请人" placeholder="申请人" value="@(Model.Name)"></mt-field>
+    <mt-field label="提现方式" placeholder="提现方式" v-model="WithdrawType" :readonly="true" :class="getValidClass(WithdrawType)">
+        <mt-button icon="more" @@click="WithdrawTypePickerVisible=true" type="danger"></mt-button>
+    </mt-field>
+    <mt-field label="提现备注" placeholder="银行提现需要提供支行信息" v-model="Model.Description" :class="getValidClass(Model.Description)"></mt-field>
+    <mt-field label="提现帐号" placeholder="提现帐号" v-model="Model.Account" :class="getValidClass(Model.Account)"></mt-field>
+    <mt-field label="提现姓名" placeholder="提现姓名" v-model="Model.Name" :class="getValidClass(Model.Name)"></mt-field>
+    <mt-field label="提现手机" placeholder="提现手机" v-model="Model.Phone" :class="getValidClass(Model.Phone,'isTel')"></mt-field>
+    <mt-field type="number" label="提现邦币" placeholder="提现邦币" v-model="Model.Score" :class="getValidClass(Model.Score,null,Model.Score>Score)"></mt-field>
+</div>
+
+<div class="my-submit">
+    <mt-button type="danger" @@click="submit()">立即申请</mt-button>
+</div>
+
+<mt-popup v-model="WithdrawTypePickerVisible"
+          class="my-mint-popup"
+          popup-transition="popup-fade">
+    <div class="my-popup-button">
+        <mt-button type="danger" @@click="WithdrawTypePickerVisible=false">确定</mt-button>
+    </div>
+    <mt-picker :slots="WithdrawTypeSlots"
+               value-key="Name"
+               @@change="onWithdrawTypeChange">
+    </mt-picker>
+</mt-popup>
+
+@section js{
+    <script>
+    function getVueOptions() {
+        return helper.getVueModelOptions({
+            data: {
+                Score: @Model.Score,
+                WithdrawTypePickerVisible: false,
+                WithdrawType: null,
+                WithdrawTypeSlots: [],
+                Model: @Html.Raw(TypeHelper.ToJson<Withdraw>())
+            },
+            mounted: function(){
+                this.Model.Score = null;
+                this.Model.Name = "@(Model.Name)";
+                this.Model.Phone = "@(Model.Phone)";
+            },
+            methods: {
+                initPage: function () {
+                    var _this = this;
+                    helper.post("/Mob/Home/GetWithdrawTypeList", helper.default.AllPageParam, function (data) {
+                        _this.WithdrawTypeSlots = _this.getSlots(data.Data);
+                        if (data.Data.length > 0) {
+                            _this.WithdrawType = data.Data[0].Name;
+                            _this.Model.WithdrawTypeId = data.Data[0].Id;
+                        }
+                    });
+                },
+                getValidClass: function (value, cmd, other) {
+                    var callback = helper[cmd] || function () { return true; };
+                    return (helper.isNullOrEmpty(value) || !callback(value) || other) ? "my-invalid-input" : "";
+                },
+                getSlots: function (data) {
+                    return [{
+                        flex: 1,
+                        values: data || []
+                    }];
+                },
+                onWithdrawTypeChange: function (picker, values) {
+                    if (values.length == 0) {
+                        return;
+                    }
+                    this.WithdrawType = values[0].Name;
+                    this.Model.WithdrawTypeId = values[0].Id;
+                    //this.WithdrawTypePickerVisible = false;
+                },
+                submit: function(){
+                    var _this = this;
+                    if (helper.isNullOrEmpty(_this.WithdrawType)) {
+                        helper.alert("请先选择提现方式。");
+                        return;
+                    }
+                    if (helper.isNullOrEmpty(_this.Model.Account)) {
+                        helper.alert("请先输入提现帐号。");
+                        return;
+                    }
+                    if (helper.isNullOrEmpty(_this.Model.Score) || _this.Model.Score == 0) {
+                        helper.alert("请先输入提现邦币。");
+                        return;
+                    }
+                    if(_this.Model.Score>_this.Score){
+                        helper.alert("邦币不足，请重新输入。");
+                        return;
+                    }
+                    helper.post("/Mob/Withdraw/Save", this.Model, function (data) {
+                        helper.alert("恭喜您提现申请已成功，即将返回提现记录页面。", function () {
+                            helper.redirect("/Mob/Withdraw/Record");
+                        });
+                    });
+                }
+            }
+        });
+    }
+    </script>
+}

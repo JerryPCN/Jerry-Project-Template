@@ -1,0 +1,35 @@
+﻿@{
+    AdminUser user = SessionHelper.Admin.GetSession<AdminUser>();
+    List<Navigation> navList = new NavigationHelper().GetListAsync(SiteType.Admin, user.GroupId).Result;
+    if (!navList.Any(o => o.PageUrl.ToLower() == HttpContext.Current.Request.RawUrl.ToLower()))
+    {
+        Navigation firstNav = navList.Where(o => o.ParentId > 0).FirstOrDefault();
+        string strFirstUrl = firstNav == null ? "/Admin" : firstNav.PageUrl;
+        Response.Redirect(strFirstUrl);
+    }
+
+    List<Navigation> mainNavList = navList.Where(o => o.ParentId == 0).OrderBy(o => o.OrderIndex).ToList();
+    List<Navigation> childNavList = null;
+}
+
+<el-menu default-active="@(HttpContext.Current.Request.RawUrl)"
+         class="my-el-menu-vertical"
+         @@select="handleSelect"
+         background-color="#666666"
+         text-color="#fff"
+         active-text-color="#14b0bf">
+    @foreach (Navigation mainNav in mainNavList)
+    {
+        childNavList = navList.Where(o => o.ParentId == mainNav.Id).OrderBy(o => o.OrderIndex).ToList();
+        <el-submenu index="@(mainNav.Id)">
+            <template slot="title">
+                <i class="el-icon-menu"></i>
+                <span slot="title">@(mainNav.PageName)</span>
+            </template>
+            @foreach (Navigation childNav in childNavList)
+            {
+                <el-menu-item index="@childNav.PageUrl">@(childNav.PageName)</el-menu-item>
+            }
+        </el-submenu>
+    }
+</el-menu>

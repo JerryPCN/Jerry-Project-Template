@@ -1,0 +1,177 @@
+﻿<div class="my-main-body-button">
+    <span class="my-main-body-title">
+        <i class="el-icon-view"></i>
+        提现管理
+    </span>
+    <el-select v-model="WithdrawTypeId" placeholder="提现类别">
+        <el-option :key="0" label="所有类别" :value="0"></el-option>
+        <el-option v-for="item in WithdrawTypeList"
+                   :key="item.Id"
+                   :label="item.Name"
+                   :value="item.Id">
+        </el-option>
+    </el-select>
+    <el-select v-model="WithdrawStatus" placeholder="提现状态">
+        <el-option :key="0" label="所有状态" :value="0"></el-option>
+        <el-option v-for="item in WithdrawStatusList"
+                   :key="item.Id"
+                   :label="item.Name"
+                   :value="item.Id">
+        </el-option>
+    </el-select>
+</div>
+<div class="my-main-body-button">
+    <el-input v-model="SearchText" placeholder="搜索文本"></el-input>
+    <el-button type="primary" @@click="getDataList()"><i class="el-icon-search"></i> 搜索</el-button>
+    <el-date-picker v-model="StartTime"
+                    type="date"
+                    value-format="yyyy-MM-dd"
+                    placeholder="选择开始日期">
+    </el-date-picker>
+    <el-date-picker v-model="EndTime"
+                    type="date"
+                    value-format="yyyy-MM-dd"
+                    placeholder="选择截至日期">
+    </el-date-picker>
+</div>
+<el-table :data="List.Data" border stripe
+          header-row-class-name="my-main-body-table-header"
+          @@selection-change="handleSelectionChange"
+          @@sort-change="function(sort){handleSortChange(sort,'List');}"
+          style="width: 100%">
+    <el-table-column label="申请人" prop="MemberId" sortable="custom">
+        <template slot-scope="scope">
+            <p class="my-text-danger">姓名：{{scope.row.Member.Name}}</p>
+            <p class="my-text-success">昵称：{{scope.row.Member.NickName}}</p>
+        </template>
+    </el-table-column>
+    <el-table-column label="提现人" prop="MemberId" sortable="custom">
+        <template slot-scope="scope">
+            <p class="my-text-danger">姓名：{{scope.row.Withdraw.Name}}</p>
+            <p class="my-text-success">电话：{{scope.row.Withdraw.Phone}}</p>
+        </template>
+    </el-table-column>
+    <el-table-column label="提现类型" prop="WithdrawTypeId" sortable="custom">
+        <template slot-scope="scope">
+            <p>提现类型：{{scope.row.WithdrawType}}</p>
+            <p class="my-text-danger">提现备注：{{scope.row.Withdraw.Description}}</p>
+            <p class="my-text-success">提现帐号：{{scope.row.Withdraw.Account}}</p>
+        </template>
+    </el-table-column>
+    <el-table-column label="手续费率" prop="TaxPercentage" sortable="custom">
+        <template slot-scope="scope">
+            <p class="my-text-danger">{{scope.row.Withdraw.TaxPercentage*100}}%</p>
+        </template>
+    </el-table-column>
+    <el-table-column label="提现优币" prop="Score" sortable="custom">
+        <template slot-scope="scope">
+            <p>提现优币：{{scope.row.Withdraw.Score}}</p>
+            <p class="my-text-danger">个人所得税：{{scope.row.Withdraw.Score*scope.row.Withdraw.TaxPercentage}}</p>
+            <p class="my-text-success">需转帐优币：{{scope.row.Withdraw.Score-scope.row.Withdraw.Score*scope.row.Withdraw.TaxPercentage}}</p>
+        </template>
+    </el-table-column>
+    <el-table-column label="申请时间" prop="ApplyTime" sortable="custom">
+        <template slot-scope="scope">
+            {{scope.row.Withdraw.ApplyTime}}
+        </template>
+    </el-table-column>
+    <el-table-column label="提现状态" prop="Status">
+        <template slot-scope="scope">
+            <el-tag :type="getWithdrawStatus(scope.row.Withdraw.Status)">{{scope.row.WithdrawStatus}}</el-tag>
+        </template>
+    </el-table-column>
+    <el-table-column label="操作" width="180" align="center">
+        <template slot-scope="scope">
+            <el-button v-if="scope.row.Withdraw.Status == 1" size="mini" @@click="handleApprove(scope.$index, scope.row)"><i class="el-icon-edit"></i> 提现</el-button>
+            <el-button v-if="scope.row.Withdraw.Status == 1" size="mini" @@click="handleDiscard(scope.$index, scope.row)"  type="danger"><i class="el-icon-delete"></i> 废弃</el-button>
+        </template>
+    </el-table-column>
+</el-table>
+
+@Html.Partial("_pagination", "List")
+
+@section js{
+<script>
+    function getVueOptions() {
+        return helper.getPageVueOptions("Withdraw", function () {
+           return @Html.Raw(TypeHelper.ToJson<WithdrawDto>());
+        }, {
+            data: {
+                TaxPercentage:@SystemConfigModel.Instance.TaxPercentage,
+                SearchText: null,
+                StartTime: null,
+                EndTime: null,
+                WithdrawTypeId: 0,
+                WithdrawTypeList: [],
+                WithdrawStatus: 0,
+                WithdrawStatusList: [
+                    { Id: 1, Name: "申请中" },
+                    { Id: 2, Name: "已提现" },
+                    { Id: 3, Name: "已废弃" }
+                ]
+            },
+            watch: {
+                "StartTime": function (val) {
+                    this.getDataList();
+                },
+                "EndTime": function (val) {
+                    this.getDataList();
+                },
+                "WithdrawTypeId": function (val) {
+                    this.getDataList();
+                },
+                "WithdrawStatus": function (val) {
+                    this.getDataList();
+                }
+            },
+            mounted: function () {
+                var _this = this;
+                helper.post("/Admin/WithdrawType/GetList", helper.default.AllPageParam, function (data) {
+                    _this.WithdrawTypeList = data.Data;
+                });
+            },
+            methods: {
+                getSearchModel: function (table) {
+                    table = table || helper.default.Vue.DefaultTable;
+                    return {
+                        Id: this.WithdrawTypeId,
+                        Id1: this.WithdrawStatus,
+                        SearchText: this.SearchText,
+                        PageParam: helper.getContext(this, table).PageParam,
+                        Sort: this[table].Sort,
+                        StartTime: this.StartTime,
+                        EndTime: this.EndTime,
+                    };
+                },
+                getWithdrawStatus: function (status) {
+                    switch (status) {
+                        case 1:
+                            return "info";
+                        case 2:
+                            return "success";
+                        case 3:
+                        default:
+                            return "danger";
+                    }
+                },
+                handleApprove: function (index, row) {
+                    var _this = this;
+                    helper.confirm("确定已经打款给学员了吗？", function () {
+                        helper.post("/Admin/Withdraw/Approve/" + row.Withdraw.Id, null, function (data) {
+                            _this.getDataList();
+                        });
+                    });
+                },
+                handleDiscard: function (index, row) {
+                    var _this = this;
+                    helper.confirm("确定要废弃该提现申请吗？", function () {
+                        helper.post("/Admin/Withdraw/Discard/" + row.Withdraw.Id, null, function (data) {
+                            _this.getDataList();
+                        });
+                    });
+                }
+            }
+        });
+    }
+</script>
+}

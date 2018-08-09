@@ -1,0 +1,315 @@
+﻿@model Enroll
+
+<mt-header class="my-header-danger" title="报名学车">
+    <mt-button slot="left" icon="back" @@click="goBack()">返回</mt-button>
+    <span slot="right">{{Location.City}}</span>
+</mt-header>
+
+<div class="my-title">
+    <h2>请填写报名信息</h2>
+</div>
+
+<div class="my-form">
+    <mt-field label="邀请码" placeholder="邀请码" v-model="Model.ShareCode" :readonly="ShareCodeDisabled"></mt-field>
+    <mt-field label="姓名" placeholder="姓名" v-model="Model.Name" :class="getValidClass(Model.Name)"></mt-field>
+    <mt-field label="选择科目" placeholder="选择科目" v-model="Course" :readonly="true" :class="getValidClass(Course)">
+        <mt-button icon="more" @@click="CoursePickerVisible=true" type="danger"></mt-button>
+    </mt-field>
+    <mt-field label="报名费用" placeholder="报名费用" v-model="Model.Amount+'元'" :readonly="true" :class="getValidClass(Model.Amount, 'Amount')"></mt-field>
+    <mt-field label="选择城市" placeholder="选择城市" v-model="Model.City" :readonly="true" :class="getValidClass(Model.City)">
+        <mt-button icon="more" @@click="CityPickerVisible=true" type="danger"></mt-button>
+    </mt-field>
+    @*<mt-field label="训练场地" placeholder="选择场地" v-model="Model.Ground" :readonly="true" :class="getValidClass(Model.Ground)">
+        <mt-button icon="more" @@click="GroundPickerVisible=true" type="danger"></mt-button>
+    </mt-field>*@
+    <mt-field label="就读学校" placeholder="选择学校" v-model="Model.School" :readonly="true" :class="getValidClass(Model.School)">
+        <mt-button icon="more" @@click="SchoolPickerVisible=true" type="danger"></mt-button>
+    </mt-field>
+    <mt-field label="身份证号" placeholder="身份证号" v-model="Model.IdCard" :class="getValidClass(Model.IdCard, 'isIdCard')"></mt-field>
+    <mt-field label="联系电话" placeholder="联系电话" type="tel" v-model="Model.Phone" :class="getValidClass(Model.Phone, 'isTel')"></mt-field>
+    <mt-field label="居住地" placeholder="居住地" type="textarea" rows="2" v-model="Model.Address" :class="getValidClass(Model.Address,null,'my-cell-value-textarea')"></mt-field>
+    @*<mt-field label="验证码" placeholder="验证码" v-model="Model.Code" :class="getValidClass(Model.Code, 'isVerifyCode')">
+        <img class="my-mob-verifycode" v-bind:src="VerifyCodeUrl" @@click="resetVerifyCode()" />
+    </mt-field>*@
+    <mt-field label="验证码" placeholder="点击获取验证码" v-model="Model.Code" :class="getValidClass(Model.Code, 'isVerifyCode')">
+        <mt-button @@click="sendSMS()" type="danger" :disabled="IsSending">{{SendText}}</mt-button>
+    </mt-field>
+</div>
+
+<div class="my-submit">
+    <mt-button type="danger" @@click="submit()">@(Model.Id > 0 ? "立即修改报名" : "立即报名")</mt-button>
+</div>
+
+<mt-popup v-model="CoursePickerVisible"
+          class="my-mint-popup"
+          popup-transition="popup-fade">
+    <div class="my-popup-button">
+        <mt-button type="danger" @@click="CoursePickerVisible=false">确定</mt-button>
+    </div>
+    <mt-picker :slots="CourseSlots"
+               value-key="Name"
+               @@change="onCourseChange">
+    </mt-picker>
+</mt-popup>
+
+<mt-popup v-model="CityPickerVisible"
+          class="my-mint-popup"
+          popup-transition="popup-fade">
+    <div class="my-popup-button">
+        <mt-button type="danger" @@click="CityPickerVisible=false">确定</mt-button>
+    </div>
+    <mt-picker :slots="CitySlots"
+               value-key="Name"
+               @@change="onCityChange">
+    </mt-picker>
+</mt-popup>
+
+<mt-popup v-model="GroundPickerVisible"
+          class="my-mint-popup"
+          popup-transition="popup-fade">
+    <div class="my-popup-button">
+        <mt-button type="danger" @@click="GroundPickerVisible=false">确定</mt-button>
+    </div>
+    <mt-picker :slots="GroundSlots"
+               value-key="Name"
+               @@change="onGroundChange">
+    </mt-picker>
+</mt-popup>
+
+<mt-popup v-model="SchoolPickerVisible"
+          class="my-mint-popup"
+          popup-transition="popup-fade">
+    <div class="my-popup-button">
+        <mt-button type="danger" @@click="SchoolPickerVisible=false">确定</mt-button>
+    </div>
+    <mt-picker :slots="SchoolSlots"
+               value-key="Name"
+               @@change="onSchoolChange">
+    </mt-picker>
+</mt-popup>
+
+@section js{
+    <script>
+    function getVueOptions() {
+        return helper.getVueModelOptions({
+            data: {
+                Time: 0,
+                IsSending: false,
+                SendText: "获取",
+                CoursePickerVisible: false,
+                CityPickerVisible: false,
+                GroundPickerVisible: false,
+                SchoolPickerVisible: false,
+                CourseSlots: [],
+                CitySlots: [],
+                GroundSlots: [],
+                SchoolSlots: [],
+                VerifyCodeUrl: "",
+                Course: null,
+                ShareCodeDisabled:false,
+                Model: {
+                    Id: @Model.Id,
+                    OrderNo: "@Model.OrderNo",
+                    ShareCode: "@Model.ShareCode",
+                    Name: "@Model.Name",
+                    CourseId: @Model.CourseId,
+                    Amount: @Model.Amount,
+                    City: "@Model.City",
+                    Ground: "@Model.Ground",
+                    School: "@Model.School",
+                    IdCard: "@Model.IdCard",
+                    Phone: "@Model.Phone",
+                    Address: "@Model.Address",
+                    Code: null
+                }
+            },
+            methods: {
+                initPage: function () {
+                    var _this = this;
+                    _this.resetVerifyCode();
+
+                    if(helper.isNullOrEmpty(_this.Model.ShareCode)){
+                        helper.post("/Mob/Home/GetShareCode", null, function (data) {
+                            if (!helper.isNullOrEmpty(data)) {
+                                _this.Model.ShareCode = data;
+                                _this.ShareCodeDisabled = true;
+                            }
+                        });
+                    }else{
+                        _this.ShareCodeDisabled = true;
+                    }
+
+                    helper.post("/Mob/Home/GetCourseList", helper.default.AllPageParam, function (data) {
+                        _this.CourseSlots = _this.getSlots(data.Data);
+                        if(helper.isNullOrEmpty(_this.Model.CourseId)){
+                            if (data.Data.length > 0) {
+                                _this.Course = data.Data[0].Name;
+                                _this.Model.Amount = data.Data[0].Amount;
+                                _this.Model.CourseId = data.Data[0].Id;
+                            }
+                        }else{
+                            _this.Course = helper.getItemValue(data.Data,o=>o.Id == _this.Model.CourseId,"Name");
+                        }
+                    });
+
+                    helper.post("/Mob/Home/GetCityList", helper.default.AllPageParam, function (data) {
+                        _this.setCitySlots(data.Data);
+                    });
+
+                    //helper.post("/Mob/Home/GetGroundList", helper.default.AllPageParam, function (data) {
+                    //    _this.GroundSlots = _this.getSlots(data.Data);
+                    //    if (helper.isNullOrEmpty(_this.Model.Ground) && data.Data.length > 0) {
+                    //        _this.Model.Ground = data.Data[0].Name;
+                    //    }
+                    //});
+
+                    helper.post("/Mob/Home/GetSchoolList", helper.default.AllPageParam, function (data) {
+                        _this.SchoolSlots = _this.getSlots(data.Data);
+                        if (helper.isNullOrEmpty(_this.Model.School) && data.Data.length > 0) {
+                            _this.Model.School = data.Data[0].Name;
+                        }
+                    });
+                },
+                setCitySlots: function (data) {
+                    var _this = this;
+                    if (!_this.IsSetLocation) {
+                        setTimeout(function () { _this.setCitySlots(data); }, 100);
+                        return;
+                    }
+                    _this.CitySlots = _this.getSlots(data);
+                    if (!helper.isNullOrEmpty(_this.Location.District)) {
+                        _this.Model.City = _this.Location.District;
+                        return;
+                    }
+                    if (data.length > 0) {
+                        _this.Model.City = data[0].Name;
+                    }
+
+                },
+                getSlots: function (data) {
+                    return [{
+                        flex: 1,
+                        values: data || []
+                    }];
+                },
+                onCourseChange: function (picker, values) {
+                    if (values.length == 0) {
+                        return;
+                    }
+                    this.Course = values[0].Name;
+                    this.Model.CourseId = values[0].Id;
+                    this.Model.Amount = values[0].Amount;
+                    //this.CoursePickerVisible = false;
+                },
+                onCityChange: function (picker, values) {
+                    if (values.length == 0) {
+                        return;
+                    }
+                    this.Model.City = values[0].Name;
+                    //this.CityPickerVisible = false;
+                },
+                onGroundChange: function (picker, values) {
+                    if (values.length == 0) {
+                        return;
+                    }
+                    this.Model.Ground = values[0].Name;
+                    //this.GroundPickerVisible = false;
+                },
+                onSchoolChange: function (picker, values) {
+                    if (values.length == 0) {
+                        return;
+                    }
+                    this.Model.School = values[0].Name;
+                    //this.SchoolPickerVisible = false;
+                },
+                getValidClass: function (value, cmd, myclass) {
+                    var callback = helper[cmd] || function () { return true; };
+                    myclass = myclass || "";
+                    if (!helper.isNullOrEmpty(myclass)) {
+                        myclass += " ";
+                    }
+                    myclass += (helper.isNullOrEmpty(value) || !callback(value)) ? "my-invalid-input" : "";
+                    return myclass;
+                },
+                sendSMS: function () {
+                    if (helper.isNullOrEmpty(this.Model.Phone)) {
+                        helper.alert("请先填写联系电话。");
+                        return;
+                    }
+                    if (!helper.isTel(this.Model.Phone)) {
+                        helper.alert("请先填写合法的联系电话。");
+                        return;
+                    }
+
+                    this.IsSending = true;
+                    this.Time = 61;
+                    this.setSendText();
+                    helper.post("/Sms/SendCode/" + this.Model.Phone, null, function (data) {
+                        helper.alert("验证码已发送您手机，请注意查收。");
+                    });
+                },
+                setSendText: function () {
+                    this.Time--;
+                    if (this.Time == 0) {
+                        this.IsSending = false;
+                        this.SendText = "获取";
+                        return;
+                    }
+                    this.SendText = this.Time + 'S';
+                    setTimeout(this.setSendText, 1000);
+                },
+                resetVerifyCode: function () {
+                    this.VerifyCodeUrl = "/VerifyCode?" + Math.random();
+                },
+                submit: function () {
+                    if (helper.isNullOrEmpty(this.Model.Name)) {
+                        helper.alert("请先输入姓名。");
+                        return;
+                    }
+                    if (helper.isNullOrEmpty(this.Course)) {
+                        helper.alert("请先选择科目。");
+                        return;
+                    }
+                    if (helper.isNullOrEmpty(this.Model.City)) {
+                        helper.alert("请先选择城市。");
+                        return;
+                    }
+                    //if (helper.isNullOrEmpty(this.Model.Ground)) {
+                    //    helper.alert("请先选择场地。");
+                    //    return;
+                    //}
+                    if (helper.isNullOrEmpty(this.Model.School)) {
+                        helper.alert("请先选择学校。");
+                        return;
+                    }
+                    if (helper.isNullOrEmpty(this.Model.IdCard)) {
+                        helper.alert("请先填写身份证号。");
+                        return;
+                    }
+                    if (!helper.isIdCard(this.Model.IdCard)) {
+                        helper.alert("请先填写合法的身份证号。");
+                        return;
+                    }
+                    if (helper.isNullOrEmpty(this.Model.Phone)) {
+                        helper.alert("请先填写联系电话。");
+                        return;
+                    }
+                    if (!helper.isTel(this.Model.Phone)) {
+                        helper.alert("请先填写合法的联系电话。");
+                        return;
+                    }
+                    if (helper.isNullOrEmpty(this.Model.Code)) {
+                        helper.alert("请先填验证码。");
+                        return;
+                    }
+                    helper.post("/Mob/Enroll/Save", this.Model, function (data) {
+                        helper.alert("恭喜您报名成功，我们将尽快审核，并与您联系。", function () {
+                            helper.redirect("/Mob/Enroll/Process")
+                        });
+                    });
+                }
+            }
+        });
+    }
+    </script>
+}

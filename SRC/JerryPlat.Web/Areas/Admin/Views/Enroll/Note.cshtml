@@ -1,0 +1,16 @@
+﻿<el-dialog title="添加备注" :visible="List.NoteDialog.Visible" @@close="closeDialog('List.NoteDialog')"
+           :width="Common.DialogWidth"
+           :close-on-click-modal="Common.CloseOnClickModal"
+           :close-on-press-escape="Common.CloseOnPressEscape">
+    <el-form :model="List.NoteDialog.Model" status-icon :show-message="false" ref="List.NoteDialog"
+             :label-width="Common.FormLabelWidth"
+             :label-suffix="Common.FormLabelSuffix">
+        <el-form-item label="备注" prop="Enroll.Note" required>
+            <el-input type="textarea" :rows="4" placeholder="备注" v-model="List.NoteDialog.Model.Enroll.Note"></el-input>
+        </el-form-item>
+    </el-form>
+    <div slot="footer" class="dialog-footer">
+        <el-button @@click="closeDialog('List.NoteDialog')">取 消</el-button>
+        <el-button type="primary" @@click="submitForm('List.NoteDialog', handleSave)">确 定</el-button>
+    </div>
+</el-dialog>

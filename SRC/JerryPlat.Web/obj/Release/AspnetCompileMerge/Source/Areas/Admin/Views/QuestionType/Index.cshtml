@@ -1,0 +1,113 @@
+﻿<div class="my-main-body-button">
+    <span class="my-main-body-title">
+        <i class="el-icon-view"></i>
+        题库类型管理
+    </span>
+    <el-button type="primary" @@click="handleAdd()"><i class="el-icon-plus"></i> 添加</el-button>
+    <el-button type="danger" @@click="handleDeleteList()"><i class="el-icon-delete"></i> 批量删除</el-button>
+</div>
+<el-table :data="List.Data" border stripe
+          header-row-class-name="my-main-body-table-header"
+          @@selection-change="handleSelectionChange"
+          @@sort-change="function(sort){handleSortChange(sort,'List');}"
+          style="width: 100%">
+    <el-table-column type="selection" width="55" align="center"></el-table-column>
+    <el-table-column label="题库类型名称" prop="Name" sortable="custom">
+        <template slot-scope="scope">
+            <p><b>{{scope.row.QuestionType.Name}}</b></p>
+            <p>{{scope.row.QuestionType.Description}}</p>
+        </template>
+    </el-table-column>
+    <el-table-column label="来源" prop="Source" sortable="custom">
+        <template slot-scope="scope">
+            <p>{{scope.row.QuestionType.Source}}</p>
+        </template>
+    </el-table-column>
+    <el-table-column label="章节">
+        <template slot-scope="scope">
+            <div v-for="(item,index) in scope.row.QuestionChapters">
+                <el-tag>
+                    <b>{{index + 1}},</b>
+                    <span>{{ item.Name }}</span>
+                    <span class="my-total">({{item.QuestionCount}})</span>
+                </el-tag>
+            </div>
+        </template>
+    </el-table-column>
+    <el-table-column label="题目总数" width="80" prop="QuestionCount" sortable="custom">
+        <template slot-scope="scope">
+            {{scope.row.QuestionType.QuestionCount}}
+        </template>
+    </el-table-column>
+    <el-table-column label="排序" width="80" prop="OrderIndex" sortable="custom">
+        <template slot-scope="scope">
+            {{scope.row.QuestionType.OrderIndex}}
+        </template>
+    </el-table-column>
+    <el-table-column label="操作" width="180" align="center">
+        <template slot-scope="scope">
+            <el-button size="mini" @@click="handleEdit(scope.$index, scope.row)"><i class="el-icon-edit"></i> 编辑</el-button>
+            <el-button size="mini" type="danger" @@click="handleDelete(scope.$index, scope.row.QuestionType)"><i class="el-icon-delete"></i> 删除</el-button>
+        </template>
+    </el-table-column>
+</el-table>
+
+@Html.Partial("_pagination", "List")
+
+@Html.Partial("Edit")
+
+@section js{
+    <script>
+    function getVueOptions() {
+        return helper.getPageVueOptions("QuestionType", function () {
+            return @Html.Raw(TypeHelper.ToJson<QuestionTypeDto>());
+        }, {
+            watch: {
+                "List.ModelDialog.Model.ChapterCount": function (val) {
+                    this.setChapterList(val);
+                }
+            },
+            methods: {
+                getInitChapter: function (orderIndex) {
+                    orderIndex = orderIndex || this.List.ModelDialog.Model.QuestionChapters.length + 1;
+                    return { Id: 0, Name: "", OrderIndex: orderIndex, QuestionCount: 0 };
+                },
+                setChapterList: function (val) {
+                    if (val == null) {
+                        val = 1;
+                    }
+                    this.List.ModelDialog.Model.QuestionChapters.splice(val);
+                    for (var i = this.List.ModelDialog.Model.QuestionChapters.length; i < val; i++) {
+                        this.List.ModelDialog.Model.QuestionChapters.push(this.getInitChapter(i + 1));
+                    }
+                },
+                getChapterProp: function (index, prop) {
+                    return "QuestionChapters[" + index + "]." + prop;
+                },
+                handleAddBefore: function (model) {
+                    model.QuestionChapters = [this.getInitChapter(1)];
+                    model.ChapterCount = model.QuestionChapters.length;
+                    return model;
+                },
+                handleEditBefore: function (model) {
+                    model.ChapterCount = model.QuestionChapters.length;
+                    return model;
+                },
+                handleDeleteRowBefore: function (index, collection, info) {
+                    if (!info && collection[index] && collection[index].QuestionCount && (collection[index].QuestionCount > 0)) {
+                        var _this = this;
+                        helper.confirm("删除该类型后将会删除对应的试题，确认删除吗？", function () {
+                            _this.handleDeleteRow(index, collection, true);
+                        });
+                        return false;
+                    }
+                    return true;
+                },
+                getItemId: function (item) {
+                    return item.QuestionType.Id
+                }
+            }
+        });
+    }
+    </script>
+}

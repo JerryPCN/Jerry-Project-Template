@@ -1,0 +1,48 @@
+﻿<div class="my-main-body-button">
+    <span class="my-main-body-title">
+        <i class="el-icon-view"></i>
+        教练管理
+    </span>
+    <el-button type="primary" @@click="handleAdd()"><i class="el-icon-plus"></i> 添加</el-button>
+    <el-button type="danger" @@click="handleDeleteList()"><i class="el-icon-delete"></i> 批量删除</el-button>
+</div>
+<el-table :data="List.Data" border stripe
+          header-row-class-name="my-main-body-table-header"
+          @@selection-change="handleSelectionChange"
+          @@sort-change="function(sort){handleSortChange(sort,'List');}"
+          style="width: 100%">
+    <el-table-column type="selection" width="55" align="center"></el-table-column>
+    <el-table-column label="图片">
+        <template slot-scope="scope">
+            <img class="my-pic-detail" v-bind:src="scope.row.PicPath" v-if="existFile(scope.row.PicPath)" />
+        </template>
+    </el-table-column>
+    <el-table-column label="姓名" prop="Name" sortable="custom"></el-table-column>
+    <el-table-column label="性别" prop="Sex" sortable="custom">
+        <template slot-scope="scope">
+            {{getSex(scope.row.Sex)}}
+        </template>
+    </el-table-column>
+    <el-table-column label="电话" prop="Phone" sortable="custom"></el-table-column>
+    <el-table-column label="排序" prop="OrderIndex" sortable="custom"></el-table-column>
+    <el-table-column label="操作" width="180" align="center">
+        <template slot-scope="scope">
+            <el-button size="mini" @@click="handleEdit(scope.$index, scope.row)"><i class="el-icon-edit"></i> 编辑</el-button>
+            <el-button size="mini" type="danger" @@click="handleDelete(scope.$index, scope.row)"><i class="el-icon-delete"></i> 删除</el-button>
+        </template>
+    </el-table-column>
+</el-table>
+
+@Html.Partial("_pagination", "List")
+
+@Html.Partial("Edit")
+
+@section js{
+    <script>
+    function getVueOptions() {
+        return helper.getPageVueOptions("Coach", function () {
+            return @Html.Raw(TypeHelper.ToJson<Coach>());
+        });
+    }
+    </script>
+}

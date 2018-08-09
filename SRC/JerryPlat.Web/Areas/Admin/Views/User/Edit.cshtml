@@ -1,0 +1,28 @@
+﻿<el-dialog :title="getTitle('用户')" :visible="List.ModelDialog.Visible" @@close="closeDialog('List.ModelDialog')"
+           :width="Common.DialogWidth"
+           :close-on-click-modal="Common.CloseOnClickModal"
+           :close-on-press-escape="Common.CloseOnPressEscape">
+    <el-form :model="List.ModelDialog.Model" status-icon :show-message="false" ref="List.ModelDialog"
+             :label-width="Common.FormLabelWidth"
+             :label-suffix="Common.FormLabelSuffix">
+        <el-form-item label="用户名称" prop="UserName" required>
+            <el-input placeholder="用户名称" v-model="List.ModelDialog.Model.UserName"></el-input>
+        </el-form-item>
+        <el-form-item label="用户密码" prop="Password" required>
+            <el-input placeholder="用户密码" type="password" v-model="List.ModelDialog.Model.Password"></el-input>
+        </el-form-item>
+        <el-form-item label="用户组" prop="GroupId" required>
+            <el-select v-model="List.ModelDialog.Model.GroupId" placeholder="请选择用户组">
+                <el-option v-for="item in GroupList"
+                           :key="item.Id"
+                           :label="item.Name"
+                           :value="item.Id">
+                </el-option>
+            </el-select>
+        </el-form-item>
+    </el-form>
+    <div slot="footer" class="dialog-footer">
+        <el-button @@click="closeDialog('List.ModelDialog')">取 消</el-button>
+        <el-button type="primary" @@click="submitForm('List.ModelDialog', handleSave)">确 定</el-button>
+    </div>
+</el-dialog>

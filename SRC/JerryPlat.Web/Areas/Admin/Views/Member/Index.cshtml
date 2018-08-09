@@ -1,0 +1,203 @@
+﻿<div class="my-main-body-button">
+    <span class="my-main-body-title">
+        <i class="el-icon-view"></i>
+        学员管理
+    </span>
+    <el-input v-model="SearchText" placeholder="搜索文本"></el-input>
+    <el-button type="primary" @@click="getDataList()"><i class="el-icon-search"></i> 搜索</el-button>
+    <el-date-picker v-model="StartTime"
+                    type="date"
+                    value-format="yyyy-MM-dd"
+                    placeholder="选择开始日期">
+    </el-date-picker>
+    <el-date-picker v-model="EndTime"
+                    type="date"
+                    value-format="yyyy-MM-dd"
+                    placeholder="选择截至日期">
+    </el-date-picker>
+</div>
+<div class="my-main-body-button">
+    <el-button type="primary" @@click="Import.ModelDialog.Visible = true"><i class="el-icon-upload2"></i> 导入</el-button>
+    <el-button type="primary" @@click="exportExcel()"><i class="el-icon-download"></i> 导出</el-button>
+    <el-button type="primary" @@click="AutoScore.ModelDialog.Visible = true"><i class="el-icon-refresh"></i> 开始优币奖励</el-button>
+</div>
+<el-table :data="List.Data" border stripe
+          header-row-class-name="my-main-body-table-header"
+          @@sort-change="function(sort){handleSortChange(sort,'List');}"
+          style="width: 100%">
+    <el-table-column label="头像">
+        <template slot-scope="scope">
+            <img class="my-pic-detail" v-bind:src="scope.row.Avatar" v-if="existFile(scope.row.Avatar)" />
+        </template>
+    </el-table-column>
+    <el-table-column label="姓名" prop="Name" sortable="custom">
+        <template slot-scope="scope">
+            <p class="my-text-danger">姓名：{{scope.row.Name}}</p>
+            <p class="my-text-success">昵称：{{scope.row.NickName}}</p>
+        </template>
+    </el-table-column>
+    @*<el-table-column label="性别" prop="Sex" sortable="custom">
+        <template slot-scope="scope">
+            {{getSex(scope.row.Sex)}}
+        </template>
+    </el-table-column>*@
+    <el-table-column label="电话" prop="Phone" sortable="custom">
+        <template slot-scope="scope">
+            <b class="my-text-success">{{scope.row.Phone}}</b>
+        </template>
+    </el-table-column>
+    <el-table-column label="推荐码" prop="ShareCode" sortable="custom">
+        <template slot-scope="scope">
+            <b class="my-text-success">{{scope.row.ShareCode}}</b>
+        </template>
+    </el-table-column>
+    <el-table-column label="优币" prop="Score" sortable="custom">
+        <template slot-scope="scope">
+            <b class="my-text-danger">{{scope.row.Score}}</b>
+        </template>
+    </el-table-column>
+    <el-table-column label="时间" prop="UpdateTime" sortable="custom">
+        <template slot-scope="scope">
+            {{getDate(scope.row.JoinTime)}}
+        </template>
+    </el-table-column>
+    <el-table-column label="操作" width="180" align="center">
+        <template slot-scope="scope">
+            <el-button size="mini" @@click="handleScoreDetails(scope.$index, scope.row)"><i class="el-icon-edit"></i> 查看优币详细</el-button>
+        </template>
+    </el-table-column>
+</el-table>
+
+@Html.Partial("_pagination", "List")
+@Html.Partial("AutoScore")
+@Html.Partial("Import")
+@Html.Partial("ScoreDetails")
+
+@section js{
+<script>
+    function getVueOptions() {
+        return helper.getPageVueOptions("Member", null, {
+            data: {
+                StartTime: null,
+                EndTime: null,
+                SearchText: null,
+                pickerOptions: {
+                    disabledDate: function (time) {
+                        var now = new Date();
+                        return time.getTime() > new Date(now.getFullYear(), now.getMonth()-1, 1).getTime();
+                    }
+                },
+                AutoScore: {
+                    ModelDialog: {
+                        Visible: false,
+                        Model: {
+                            Id: ""
+                        }
+                    }
+                },
+                Import: {
+                    ModelDialog: {
+                        Visible: false,
+                        Model: {
+                            ExcelPath: ""
+                        },
+                        Progress: [0]
+                    }
+                },
+                ScoreList: helper.getInitList({ Id: 0 }, { Action: "/Admin/Member/GetScoreList" })
+            },
+            watch: {
+                "StartTime": function (val) {
+                    this.getDataList();
+                },
+                "EndTime": function (val) {
+                    this.getDataList();
+                }
+            },
+            methods: {
+                getSearchModel: function (table) {
+                    table = table || helper.default.Vue.DefaultTable;
+                    if (table == "List") {
+                        return {
+                            SearchText: this.SearchText,
+                            StartTime: this.StartTime,
+                            EndTime: this.EndTime,
+                            PageParam: helper.getContext(this, table).PageParam,
+                            Sort: this[table].Sort
+                        };
+                    }
+                    //ScoreList
+                    return {
+                        Id: this[table].ModelDialog.Model.Id,
+                        PageParam: helper.getContext(this, table).PageParam,
+                        Sort: this[table].Sort
+                    };
+                },
+                handleImportBeforeUpload: function (field, modelDialog, file) {
+                    var _this = this;
+                    var Xls = file.name.split('.');
+                    if (Xls[1] === 'xls' || Xls[1] === 'xlsx') {
+                        return _this.handleBeforeUpload(field, modelDialog, file);
+                    }
+
+                    helper.error('上传文件只能是 xls/xlsx 格式!', function () {
+                        _this.resetForm("Import.ModelDialog");
+                    })
+
+                    return false
+                },
+                exportExcel: function (table) {
+                    table = table || helper.default.Vue.DefaultTable;
+                    var strQueryString = "";
+                    if (!helper.isNullOrEmpty(this.StartTime)) {
+                        strQueryString += (strQueryString == "" ? "" : "&") + "StartTime=" + this.StartTime;
+                    }
+                    if (!helper.isNullOrEmpty(this.EndTime)) {
+                        strQueryString += (strQueryString == "" ? "" : "&") + "EndTime=" + this.EndTime;
+                    }
+                    if (!helper.isNullOrEmpty(this[table].Sort)) {
+                        strQueryString += (strQueryString == "" ? "" : "&") + "Sort=" + this[table].Sort;
+                    }
+                    if (!helper.isNullOrEmpty(strQueryString)) {
+                        strQueryString = "?" + strQueryString;
+                    }
+
+                    window.open("/Admin/Member/Export" + strQueryString);
+                },
+                exportScoreHistoryExcel: function (table) {
+                    table = table || helper.default.Vue.DefaultTable;
+                    var strQueryString = "Id=" + this[table].ModelDialog.Model.Id;
+
+                    if (!helper.isNullOrEmpty(this[table].Sort)) {
+                        strQueryString += "&Sort=" + this[table].Sort;
+                    }
+                    if (!helper.isNullOrEmpty(strQueryString)) {
+                        strQueryString = "?" + strQueryString;
+                    }
+                    window.open("/Admin/Member/ExportScoreHistory" + strQueryString);
+                },
+                autoScoreCallback: function () {
+                    var _this = this;
+                    helper.alert("优币分配成功。", function () {
+                        _this.getDataList();
+                    });
+                },
+                importCallback: function () {
+                    var _this = this;
+                    helper.alert("导入数据成功。", function () {
+                        _this.getDataList();
+                    });
+                },
+                handleScoreDetails: function (index, item) {
+                    var _this = this;
+                    helper.resetPage(this.ScoreList);
+                    _this.ScoreList.Data = [];
+                    _this.ScoreList.ModelDialog.Model.Id = item.Id;
+                    _this.ScoreList.ModelDialog.Visible = true;
+                    _this.getDataList("ScoreList");
+                }
+            }
+        });
+    }
+</script>
+}

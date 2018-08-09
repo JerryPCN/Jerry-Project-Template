@@ -1,0 +1,62 @@
+﻿<el-dialog :title="getTitle('题库类型')" :visible="List.ModelDialog.Visible" @@close="closeDialog('List.ModelDialog')"
+           :width="Common.DialogWidth"
+           :close-on-click-modal="Common.CloseOnClickModal"
+           :close-on-press-escape="Common.CloseOnPressEscape">
+    <el-form :model="List.ModelDialog.Model" status-icon :show-message="false" ref="List.ModelDialog"
+             :label-width="Common.FormLabelWidth"
+             :label-suffix="Common.FormLabelSuffix">
+        <el-form-item label="题库类型名称" prop="QuestionType.Name" required>
+            <el-input placeholder="题库类型名称" v-model="List.ModelDialog.Model.QuestionType.Name"></el-input>
+        </el-form-item>
+        <el-form-item label="题库类型描述" prop="QuestionType.Description" required>
+            <el-input placeholder="题库类型描述" v-model="List.ModelDialog.Model.QuestionType.Description"></el-input>
+        </el-form-item>
+        <el-form-item label="题库来源" prop="QuestionType.Source" required>
+            <el-input placeholder="题库来源" v-model="List.ModelDialog.Model.QuestionType.Source"></el-input>
+        </el-form-item>
+        <el-form-item label="排序" prop="QuestionType.OrderIndex" required>
+            <el-input-number placeholder="排序" v-model="List.ModelDialog.Model.QuestionType.OrderIndex" :min="1"></el-input-number>
+        </el-form-item>
+        <el-form-item label="章节数量" prop="ChapterCount" required>
+            <el-input-number placeholder="章节数量" v-model="List.ModelDialog.Model.ChapterCount" :min="1" :max="6"></el-input-number>
+        </el-form-item>
+        <el-table :data="List.ModelDialog.Model.QuestionChapters"
+                  border
+                  style="width: 100%">
+            <el-table-column label="#"
+                             width="30">
+                <template slot-scope="scope">
+                    <b>{{scope.$index + 1}}</b>
+                </template>
+            </el-table-column>
+            <el-table-column label="章节名称" align="center">
+                <template slot-scope="scope">
+                    <el-form-item label-width="0px" :prop="getChapterProp(scope.$index,'Name')" required>
+                        <el-input placeholder="章节名称" v-model="scope.row.Name"></el-input>
+                    </el-form-item>
+                </template>
+            </el-table-column>
+            <el-table-column label="排序" width="140" align="center">
+                <template slot-scope="scope">
+                    <el-form-item label-width="0px" :prop="getChapterProp(scope.$index,'OrderIndex')" required>
+                        <el-input-number class="my-orderindex-width" placeholder="排序" v-model="scope.row.OrderIndex" :min="1"></el-input-number>
+                    </el-form-item>
+                </template>
+            </el-table-column>
+            <el-table-column label="题目总数" width="80">
+                <template slot-scope="scope">
+                    <b class="my-total">{{scope.row.QuestionCount}}</b>
+                </template>
+            </el-table-column>
+            <el-table-column label="操作" width="100" align="center">
+                <template slot-scope="scope">
+                    <el-button size="mini" type="danger" @@click="handleDeleteRow(scope.$index, List.ModelDialog.Model.QuestionChapters)"><i class="el-icon-delete"></i> 删除</el-button>
+                </template>
+            </el-table-column>
+        </el-table>
+    </el-form>
+    <div slot="footer" class="dialog-footer">
+        <el-button @@click="closeDialog('List.ModelDialog')">取 消</el-button>
+        <el-button type="primary" @@click="submitForm('List.ModelDialog', handleSave)">确 定</el-button>
+    </div>
+</el-dialog>

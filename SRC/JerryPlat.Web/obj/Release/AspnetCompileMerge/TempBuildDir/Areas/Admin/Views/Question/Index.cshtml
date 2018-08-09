@@ -1,0 +1,259 @@
+﻿<link href="/Content/quill.snow.1.3.6.css" rel="stylesheet" />
+<div class="my-main-body-button">
+    <span class="my-main-body-title">
+        <i class="el-icon-view"></i>
+        题库管理
+    </span>
+    <el-select v-model="QuestionTypeId" placeholder="请选择题库类型">
+        <el-option v-for="item in QuestionTypeList"
+                   :key="item.QuestionType.Id"
+                   :label="item.QuestionType.Name"
+                   :value="item.QuestionType.Id">
+        </el-option>
+    </el-select>
+    <el-select v-model="QuestionChapterId" placeholder="请选择题库章节">
+        <el-option :key="0"
+                   label="所有章节"
+                   :value="0">
+        </el-option>
+        <el-option v-for="item in QuestionChapterList"
+                   :key="item.Id"
+                   :label="item.Name"
+                   :value="item.Id">
+        </el-option>
+    </el-select>
+    <el-button type="primary" @@click="handleImport()"><i class="el-icon-plus"></i> 同步到驾考宝典</el-button>
+    <el-button type="primary" @@click="handleAdd()"><i class="el-icon-plus"></i> 添加</el-button>
+    <el-button type="danger" @@click="handleDeleteList()"><i class="el-icon-delete"></i> 批量删除</el-button>
+</div>
+<el-table :data="List.Data" border stripe
+          header-row-class-name="my-main-body-table-header"
+          @@selection-change="handleSelectionChange"
+          @@sort-change="function(sort){handleSortChange(sort,'List');}"
+          style="width: 100%">
+    @*<el-table-column type="expand">
+        <template slot-scope="props">
+            <el-form label-position="left">
+                <el-form-item v-for="(item, index) in props.row.Answers" :label="getCharIndex(index)">
+                    <span>{{ item.Description }}</span>
+                    <i v-if="item.IsAnswer" class="el-icon-success my-text-success"></i>
+                </el-form-item>
+            </el-form>
+        </template>
+    </el-table-column>*@
+    <el-table-column type="selection" width="55" align="center"></el-table-column>
+    <el-table-column label="题目类型" width="120" prop="AnswerType" sortable="custom">
+        <template slot-scope="scope">
+            {{getQuestionType(scope.row.Question.AnswerType)}}
+        </template>
+    </el-table-column>
+    <el-table-column label="题目描述" prop="Description" sortable="custom">
+        <template slot-scope="scope">
+            <div>{{scope.row.Question.Description}}</div>
+            <img v-if="existFile(scope.row.Question.PicPath)" class="my-img-col-show"
+                 :src="scope.row.Question.PicPath" />
+        </template>
+    </el-table-column>
+    <el-table-column label="答案">
+        <template slot-scope="scope">
+            <div v-for="(item,index) in scope.row.Answers">
+                <el-tag>
+                    <b>{{getCharIndex(index)}},</b>
+                    <span>{{ item.Description }}</span>
+                    <i v-if="item.IsAnswer" class="el-icon-success my-text-success"></i>
+                </el-tag>
+            </div>
+        </template>
+    </el-table-column>
+    <el-table-column label="分数" width="80" prop="Mark" sortable="custom">
+        <template slot-scope="scope">
+            {{scope.row.Question.Mark}}
+        </template>
+    </el-table-column>
+    <el-table-column label="排序" width="80" prop="OrderIndex" sortable="custom">
+        <template slot-scope="scope">
+            {{scope.row.Question.OrderIndex}}
+        </template>
+    </el-table-column>
+    <el-table-column label="操作" width="180" align="center">
+        <template slot-scope="scope">
+            <el-button size="mini" @@click="handleEdit(scope.$index, scope.row)"><i class="el-icon-edit"></i> 编辑</el-button>
+            <el-button size="mini" type="danger" @@click="handleDelete(scope.$index, scope.row.Question)"><i class="el-icon-delete"></i> 删除</el-button>
+        </template>
+    </el-table-column>
+</el-table>
+
+@Html.Partial("_pagination", "List")
+
+@Html.Partial("Edit")
+
+@section js{
+    <script src="/Scripts/quill.min.js"></script>
+    <script src="/Scripts/vue-quill-editor.js"></script>
+    <script>
+        Vue.use(window.VueQuillEditor);
+    function getVueOptions() {
+        return helper.getPageVueOptions("Question", function () {
+            return @Html.Raw(TypeHelper.ToJson<QuestionDto>());
+        }, {
+            data: {
+                QuestionTypeId: 0,
+                QuestionTypeList: [],
+                QuestionChapterId: 0,
+                QuestionChapterList: [],
+                Progress: [0]
+            },
+            mounted: function () {
+                var _this = this;
+                helper.post("/Admin/QuestionType/GetList", helper.default.AllPageParam, function (data) {
+                    _this.QuestionTypeList = data.Data;
+                    if (_this.QuestionTypeList.length > 0) {
+                        _this.QuestionTypeId = _this.QuestionTypeList[0].QuestionType.Id;
+                    }
+                });
+            },
+            watch: {
+                "List.ModelDialog.Model.AnswerCount": function (val) {
+                    this.setAnswerList(val);
+                },
+                "QuestionTypeId": function (val) {
+                    this.QuestionChapterList = this.getChapterList(val);
+                    if (this.QuestionChapterId == 0) {
+                        this.getDataList();
+                    } else {
+                        this.QuestionChapterId = 0;
+                    }
+                },
+                'QuestionChapterId': function (val) {
+                    this.getDataList();
+                }
+            },
+            methods: {
+                initPage: function () {},
+                isSingleSelectQuestion: function (answerType) {
+                    return answerType == 1 || answerType == 2;
+                },
+                getQuestionType: function(answerType){
+                    switch (answerType) {
+                        case 1:
+                            return "判断题";
+                        case 2:
+                            return "单选题";
+                        default://3
+                            return "多选题";
+                    }
+                },
+                getSearchModel: function (table) {
+                    table = table || helper.default.Vue.DefaultTable;
+                    return {
+                        Id: this.QuestionTypeId,
+                        Id1: this.QuestionChapterId,
+                        PageParam: helper.getContext(this, table).PageParam,
+                        Sort: this[table].Sort
+                    };
+                },
+                getInitAnswer: function (orderIndex) {
+                    orderIndex = orderIndex || this.List.ModelDialog.Model.Answers.length + 1;
+                    return { Id: 0, Description: "", OrderIndex: orderIndex, IsAnswer: false };
+                },
+                getChapterList: function (val) {
+                    for (var i = 0; i < this.QuestionTypeList.length; i++) {
+                        if (val == this.QuestionTypeList[i].QuestionType.Id) {
+                            return this.QuestionTypeList[i].QuestionChapters;
+                        }
+                    }
+                    return [];
+                },
+                setAnswerList: function (val) {
+                    if (val == null) {
+                        val = 2;
+                    }
+
+                    this.List.ModelDialog.Model.Answers.splice(val);
+                    for (var i = this.List.ModelDialog.Model.Answers.length; i < val; i++) {
+                        this.List.ModelDialog.Model.Answers.push(this.getInitAnswer(i + 1));
+                    }
+                },
+                getAnswerProp: function (index, prop) {
+                    return "Answers[" + index + "]." + prop;
+                },
+                handleAddBefore: function (model) {
+                    model.Question.QuestionTypeId = this.QuestionTypeId;
+                    if (this.QuestionChapterId != 0) {
+                        model.Question.QuestionChapterId = this.QuestionChapterId;
+                    }else if (this.QuestionChapterList.length > 0) {
+                        model.Question.QuestionChapterId = this.QuestionChapterList[0].Id;
+                    }
+                    model.Question.AnswerType = 1;
+                    model.Answers = [this.getInitAnswer(1), this.getInitAnswer(2)];
+                    model.AnswerCount = model.Answers.length;
+                    return model;
+                },
+                handleEditBefore: function (model) {
+                    model.AnswerCount = model.Answers.length;
+                    return model;
+                },
+                handleDeleteRowBefore: function (index, collection) {
+                    return collection.length > 1;
+                },
+                getItemId: function (item) {
+                    return item.Question.Id
+                },
+                onAnswerChange: function (index, answerType, answers) {
+                    var bIsSingleSelectQuestion = this.isSingleSelectQuestion(answerType);
+                    $.each(answers, function (ind, item) {
+                        if (!bIsSingleSelectQuestion) {
+                            return;
+                        }
+                        if (ind != index) {
+                            item.IsAnswer = false;
+                        }
+                    });
+                },
+                setAnswerTypeChange:function(){
+                    if (!this.isSingleSelectQuestion(this.List.ModelDialog.Model.Question.AnswerType)) {
+                        return;
+                    }
+                    $.each(this.List.ModelDialog.Model.Answers, function (index, item) {
+                        item.IsAnswer = false;
+                    });
+                },
+                submitFormBefore: function (form) {
+                    var model = helper.getContext(this, form).Model;
+                    if (model.Answers.length < 2) {
+                        return false;
+                    }
+                    var currectCount = 0;
+                    for (var index = 0; index < model.Answers.length; index++) {
+                        //if (helper.isNullOrEmpty(model.Answers[index].Description)) {
+                        //    return false;
+                        //}
+                        if (model.Answers[index].IsAnswer) {
+                            currectCount++;
+                        }
+                    }
+                    if (this.isSingleSelectQuestion(model.Question.AnswerType)) {
+                        if (currectCount != 1) {
+                            return false;
+                        }
+                    } else {
+                        if (currectCount <= 1) {
+                            return false;
+                        }
+                    }
+                    return true;
+                },
+                handleImport: function () {
+                    var _this = this;
+                    helper.confirm("批量导入将会删除之前所有的题库，确认要批量导入吗？", function () {
+                        helper.post("/Admin/Question/Import", null, function (data) {
+                            helper.alert("导入成功.");
+                            _this.getDataList();
+                        });
+                    });
+                }
+            }
+        });
+    }
+    </script>
+}

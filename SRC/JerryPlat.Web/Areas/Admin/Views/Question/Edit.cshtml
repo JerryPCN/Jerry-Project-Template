@@ -1,0 +1,104 @@
+﻿<el-dialog :title="getTitle('题目')" :visible="List.ModelDialog.Visible" @@close="closeDialog('List.ModelDialog')"
+           :width="Common.DialogWidth"
+           :close-on-click-modal="Common.CloseOnClickModal"
+           :close-on-press-escape="Common.CloseOnPressEscape">
+    <el-form :model="List.ModelDialog.Model" status-icon :show-message="false" ref="List.ModelDialog"
+             :label-width="Common.FormLabelWidth"
+             :label-suffix="Common.FormLabelSuffix">
+        <el-form-item label="题库章节" prop="Question.QuestionChapterId" required>
+            <el-select class="my-form-item-el-select" v-model="List.ModelDialog.Model.Question.QuestionChapterId" placeholder="请选择题库章节">
+                <el-option v-for="item in QuestionChapterList"
+                           :key="item.Id"
+                           :label="item.Name"
+                           :value="item.Id">
+                </el-option>
+            </el-select>
+        </el-form-item>
+        <el-form-item label="题目描述" prop="Question.Description" required>
+            <el-input placeholder="题目描述" type="textarea" v-model="List.ModelDialog.Model.Question.Description"></el-input>
+        </el-form-item>
+        <el-form-item label="题目图片" :label-width="Common.FormLabelWidth" prop="Question.PicPath">
+            <el-popover ref="imgpopover"
+                        title="预览"
+                        trigger="hover"
+                        :disabled="!existFile(List.ModelDialog.Model.Question.PicPath)">
+                <img class="my-img-show" :src="List.ModelDialog.Model.Question.PicPath" />
+            </el-popover>
+            <el-input placeholder="图片名称" v-popover:imgpopover :disabled="true" class="my-upload" :value="getFileName(List.ModelDialog.Model.Question.PicPath)">
+                <template slot="append">
+                    <el-upload action="/Admin/Upload"
+                               :multiple="false"
+                               :show-file-list="false"
+                               :data="getUploadData('Question')"
+                               :before-upload="function(file){return handleBeforeUpload(0, List.ModelDialog, file);}"
+                               :on-progress="function(event,file,fileList){handleUploadProgress(0, List.ModelDialog, event, file, fileList);}"
+                               :on-success="function(response,file,fileList){handleUploadSuccess('Question.PicPath', List.ModelDialog, response, file, fileList);}"
+                               accept="image/*">
+                        <el-button slot="trigger" size="small" type="primary">点击上传图片</el-button>
+                    </el-upload>
+                </template>
+            </el-input>
+            <el-progress v-show="getProgress(List.ModelDialog, 0)>0" :show-text="false" :percentage="getProgress(List.ModelDialog, 0)" status="success"></el-progress>
+        </el-form-item>
+        <el-form-item label="题目类型" prop="Question.AnswerType" required>
+            <el-radio-group @@change="setAnswerTypeChange" v-model="List.ModelDialog.Model.Question.AnswerType">
+                <el-radio :label="1" border>判断题</el-radio>
+                <el-radio :label="2" border>单选题</el-radio>
+                <el-radio :label="3" border>多选题</el-radio>
+            </el-radio-group>
+        </el-form-item>
+        <el-form-item label="题目分数" prop="Question.Mark" required>
+            <el-input-number placeholder="题目分数" v-model="List.ModelDialog.Model.Question.Mark" :min="1"></el-input-number>
+        </el-form-item>
+        <el-form-item label="排序" prop="Question.OrderIndex" required>
+            <el-input-number placeholder="排序" v-model="List.ModelDialog.Model.Question.OrderIndex" :min="1"></el-input-number>
+        </el-form-item>
+        <el-form-item label="题目详解" prop="Question.Explanation">
+            <quill-editor v-model="List.ModelDialog.Model.Question.Explanation"
+                          ref="myQuillEditor"
+                          :options="{placeholder:'请输入题目详解...'}">
+            </quill-editor>
+        </el-form-item>
+        <el-form-item label="答案数量" prop="AnswerCount" required>
+            <el-input-number placeholder="答案数量" v-model="List.ModelDialog.Model.AnswerCount" :min="2" :max="6"></el-input-number>
+        </el-form-item>
+        <el-table :data="List.ModelDialog.Model.Answers"
+                  border
+                  style="width: 100%">
+            <el-table-column label="#"
+                             width="30">
+                <template slot-scope="scope">
+                    <b>{{getCharIndex(scope.$index)}}</b>
+                </template>
+            </el-table-column>
+            <el-table-column label="√" width="60" align="center">
+                <template slot-scope="scope" prop="IsAnswer">
+                    <el-switch v-model="scope.row.IsAnswer" @@change="onAnswerChange(scope.$index, List.ModelDialog.Model.Question.AnswerType, List.ModelDialog.Model.Answers)" required></el-switch>
+                </template>
+            </el-table-column>
+            <el-table-column label="答案" align="center">
+                <template slot-scope="scope">
+                    <el-form-item label-width="0px" :prop="getAnswerProp(scope.$index,'Description')" required>
+                        <el-input placeholder="答案" type="textarea" v-model="scope.row.Description"></el-input>
+                    </el-form-item>
+                </template>
+            </el-table-column>
+            <el-table-column label="排序" width="140" align="center">
+                <template slot-scope="scope">
+                    <el-form-item label-width="0px" :prop="getAnswerProp(scope.$index,'OrderIndex')" required>
+                        <el-input-number class="my-orderindex-width" placeholder="排序" v-model="scope.row.OrderIndex" :min="1"></el-input-number>
+                    </el-form-item>
+                </template>
+            </el-table-column>
+            <el-table-column label="操作" width="100" align="center">
+                <template slot-scope="scope">
+                    <el-button size="mini" type="danger" @@click="handleDeleteRow(scope.$index, List.ModelDialog.Model.Answers)"><i class="el-icon-delete"></i> 删除</el-button>
+                </template>
+            </el-table-column>
+        </el-table>
+    </el-form>
+    <div slot="footer" class="dialog-footer">
+        <el-button @@click="closeDialog('List.ModelDialog')">取 消</el-button>
+        <el-button type="primary" @@click="submitForm('List.ModelDialog', handleSave)">确 定</el-button>
+    </div>
+</el-dialog>

@@ -1,0 +1,80 @@
+﻿@{
+    ViewBag.Title = "后台管理系统";
+    Layout = "~/Areas/Admin/Views/Shared/_BaseLayout.cshtml";
+    AdminUser user = SessionHelper.Admin.GetSession<AdminUser>();
+}
+
+@section css{
+     @RenderSection("css", false)
+}
+
+@section js{
+    @RenderSection("js", false)
+}
+
+<el-container class="my-app-container">
+    <el-header class="my-main-header" height="50px">
+        <a href="/" class="my-main-header-title">优杰学车后台管理系统 V1.0</a>
+        <div class="my-main-header-menu">
+            <el-dropdown @@command="handleMenuCommand">
+                <span class="my-el-dropdown-link">
+                    欢迎 @(user.UserName)
+                    <i class="el-icon-setting el-icon--right"></i>
+                    <i class="el-icon-arrow-down el-icon--right"></i>
+                </span>
+                <el-dropdown-menu slot="dropdown">
+                    <el-dropdown-item class="my-el-dropdown-item" command="change-password">
+                        <i class="el-icon-edit el-icon--left"></i>修改密码
+                    </el-dropdown-item>
+                    <el-dropdown-item divided class="my-el-dropdown-item">
+                        <a href="/Admin/Home/Logout">
+                            <i class="el-icon-close el-icon--left"></i>退出登陆
+                        </a>
+                    </el-dropdown-item>
+                    @*<el-dropdown-item divided class="my-el-dropdown-item" command="clear-data">
+                        <i class="el-icon-edit el-icon--left"></i>清空数据
+                    </el-dropdown-item>
+                    <el-dropdown-item divided class="my-el-dropdown-item" command="restart-site">
+                        <i class="el-icon-edit el-icon--left"></i>重启站点
+                    </el-dropdown-item>*@
+                </el-dropdown-menu>
+            </el-dropdown>
+        </div>
+    </el-header>
+    <el-container>
+        <el-aside class="my-main-aside" :width="Common.SideWidth">
+            @Html.Partial("_navigation")
+        </el-aside>
+        <el-main class="my-main-body">
+            <el-tooltip class="item" effect="dark" :content="(Common.MenuVisible?'隐藏':'展开')+'菜单栏'" placement="right">
+                <div class="my-main-aside-arrow" @@click="setMenu">
+                    <i :class="{'el-icon-arrow-left':Common.MenuVisible,'el-icon-arrow-right':!Common.MenuVisible}"></i>
+                </div>
+            </el-tooltip>
+            @RenderBody()
+        </el-main>
+    </el-container>
+</el-container>
+
+<el-dialog title="修改密码" :visible="User.ModelDialog.Visible" @@close="closeDialog('User.ModelDialog')"
+           :width="Common.DialogWidth"
+           :close-on-click-modal="Common.CloseOnClickModal"
+           :close-on-press-escape="Common.CloseOnPressEscape">
+    <el-form :model="User.ModelDialog.Model" status-icon :show-message="false" ref="User.ModelDialog"
+             :label-width="Common.FormLabelWidth"
+             :label-suffix="Common.FormLabelSuffix">
+        <el-form-item label="原始密码" prop="Original" required>
+            <el-input placeholder="原始密码" type="password" v-model="User.ModelDialog.Model.Original"></el-input>
+        </el-form-item>
+        <el-form-item label="新密码" prop="Password" required>
+            <el-input placeholder="新密码" type="password" v-model="User.ModelDialog.Model.Password"></el-input>
+        </el-form-item>
+        <el-form-item label="确认密码" prop="Confirm" :rules="[{required:true, message:'请输入确认密码'},{validator:checkPassword,trigger:'change'}]">
+            <el-input placeholder="确认密码" type="password" v-model="User.ModelDialog.Model.Confirm"></el-input>
+        </el-form-item>
+    </el-form>
+    <div slot="footer" class="dialog-footer">
+        <el-button @@click="closeDialog('User.ModelDialog')">取 消</el-button>
+        <el-button type="primary" @@click="submitForm('User.ModelDialog', handleSave, '/Admin/User/ChangePassword')">确 定</el-button>
+    </div>
+</el-dialog>

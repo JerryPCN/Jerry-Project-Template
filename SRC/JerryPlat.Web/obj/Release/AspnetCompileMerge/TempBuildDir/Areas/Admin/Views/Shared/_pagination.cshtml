@@ -1,0 +1,13 @@
+﻿@model String
+
+<el-pagination background
+               class="my-main-body-button"
+               layout="total, sizes, prev, pager, next, jumper"
+               :page-sizes="[10, 20, 30, 40, 50]"
+               :current-page="@(Model).PageParam.PageIndex"
+               :page-size="@(Model).PageParam.PageSize"
+               :total="@(Model).PageModel.TotalItem"
+               :page-count="@(Model).PageModel.TotalPage"
+               @@size-change="function(val){handleSizeChange(val,'@(Model)');}"
+               @@current-change="function(val){handleCurrentChange(val,'@(Model)');}">
+</el-pagination>

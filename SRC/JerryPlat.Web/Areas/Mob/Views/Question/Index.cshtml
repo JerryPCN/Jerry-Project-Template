@@ -1,0 +1,91 @@
+﻿<div class="my-page-wrap">
+    <mt-header class="my-header-danger" title="习题库">
+        <mt-button slot="left" icon="back" @@click="goBack()">返回</mt-button>
+        <span slot="right">{{Location.City}}</span>
+    </mt-header>
+
+    <mt-swipe :auto="4000" class="my-mint-swipe" :show-indicators="false">
+        <mt-swipe-item v-for="item in BannerList" :key="item.Id">
+            <img class="my-swipe-item-img" v-bind:src="item.PicPath" />
+        </mt-swipe-item>
+    </mt-swipe>
+
+    <div class="my-wrap" v-for="item in QuestionTypeList">
+        <mt-cell class="my-mint-cell" is-link :to="'/Mob/Question/Exam/'+item.Id">
+            <img slot="icon" src="/Content/Mob/wz.png" width="24" height="24">
+            <span class="my-question-title" slot="title">{{item.Name}}</span>
+            <span class="my-danger-text">立即考试</span>
+        </mt-cell>
+        <div class="my-function" @@click="handleSelect('/Mob/Question/Order/'+item.Id)">
+            <div class="my-function-item">
+                <img src="/Content/Mob/sx.png" />
+            </div>
+            <span>顺序练习</span>
+        </div>
+        <div class="my-function" @@click="handleSelect('/Mob/Question/Random/'+item.Id)">
+            <div class="my-function-item">
+                <img src="/Content/Mob/sj.png" />
+            </div>
+            <span>随机练习</span>
+        </div>
+        <div class="my-function" @@click="handleSelect('/Mob/Question/Chapter/'+item.Id)">
+            <div class="my-function-item">
+                <img src="/Content/Mob/zj.png" />
+            </div>
+            <span>章节练习</span>
+        </div>
+        <div class="my-function" @@click="handleSelect('/Mob/Question/Order/'+item.Id+'?practiceType=3')">
+            <div class="my-function-item">
+                <img src="/Content/Mob/sc.png" />
+            </div>
+            <span>我的收藏</span>
+        </div>
+        <div class="my-function" @@click="handleSelect('/Mob/Question/Order/'+item.Id+'?practiceType=4')">
+            <div class="my-function-item">
+                <img src="/Content/Mob/ct.png" />
+            </div>
+            <span>我的错题</span>
+        </div>
+        <div class="my-function" @@click="handleSelect('/Mob/Question/Order/'+item.Id+'?practiceType=5')">
+            <div class="my-function-item">
+                <img src="/Content/Mob/wz.png" />
+            </div>
+            <span>未做题</span>
+        </div>
+    </div>
+</div>
+
+@section js{
+   <script>
+    function getVueOptions() {
+        return helper.getVueModelOptions({
+            data: {
+                BannerList: [],
+                QuestionTypeList: []
+            },
+            methods: {
+                initPage: function () {
+                    var _this = this;
+
+                    helper.post("/Mob/Home/GetBannerList", {
+                        Id: 2,//QuestionIndex
+                        PageParam: {
+                            PageIndex: 1,
+                            PageSize: 4
+                        }
+                    }, function (data) {
+                        _this.BannerList = data.Data;
+                    });
+
+                    helper.post("/Mob/Home/GetQuestionTypeList", helper.default.AllPageParam, function (data) {
+                        _this.QuestionTypeList = data.Data;
+                    });
+                },
+                goTo: function (url, item) {
+                    return "/Mob" + Exam + item.Id;
+                }
+            }
+        });
+    }
+</script>
+}

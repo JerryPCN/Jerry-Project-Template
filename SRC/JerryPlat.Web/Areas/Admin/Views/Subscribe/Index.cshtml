@@ -1,0 +1,95 @@
+﻿<div class="my-main-body-button">
+    <span class="my-main-body-title">
+        <i class="el-icon-view"></i>
+        预约学车管理
+    </span>
+    <el-select v-model="GroundId" placeholder="请选择场地">
+        <el-option :key="0" label="所有场地" :value="0"></el-option>
+        <el-option v-for="item in GroundList"
+                   :key="item.Id"
+                   :label="item.Name"
+                   :value="item.Id">
+        </el-option>
+    </el-select>
+    <el-select v-model="CoachId" placeholder="请选择教练">
+        <el-option :key="0" label="所有教练" :value="0"></el-option>
+        <el-option v-for="item in CoachList"
+                   :key="item.Id"
+                   :label="item.Name"
+                   :value="item.Id">
+        </el-option>
+    </el-select>
+</div>
+<el-table :data="List.Data" border stripe
+          header-row-class-name="my-main-body-table-header"
+          @@sort-change="function(sort){handleSortChange(sort,'List');}"
+          style="width: 100%">
+    <el-table-column label="姓名" prop="MemberId" sortable="custom">
+        <template slot-scope="scope">
+            {{scope.row.Name}}
+        </template>
+    </el-table-column>
+    <el-table-column label="场地" prop="GroundId" sortable="custom">
+        <template slot-scope="scope">
+            {{scope.row.Ground}}
+        </template>
+    </el-table-column>
+    <el-table-column label="教练" prop="CoachId" sortable="custom">
+        <template slot-scope="scope">
+            {{scope.row.Coach}}
+        </template>
+    </el-table-column>
+    <el-table-column label="预约时间" prop="TeachTime" sortable="custom">
+        <template slot-scope="scope">
+            {{getDate(scope.row.Subscribe.TeachTime)}}
+        </template>
+    </el-table-column>
+</el-table>
+
+@Html.Partial("_pagination", "List")
+
+@section js{
+<script>
+    function getVueOptions() {
+        return helper.getPageVueOptions("Subscribe", function () {
+           return @Html.Raw(TypeHelper.ToJson<Enroll>());
+        }, {
+            data: {
+                GroundId: 0,
+                GroundList: [],
+                CoachId: 0,
+                CoachList: []
+            },
+            mounted: function () {
+                var _this = this;
+                helper.post("/Admin/Ground/GetList", helper.default.AllPageParam, function (data) {
+                    _this.GroundList = data.Data;
+                });
+
+                helper.post("/Admin/Coach/GetList", helper.default.AllPageParam, function (data) {
+                    _this.CoachList = data.Data;
+                });
+            },
+            watch: {
+                "GroundId": function (val) {
+                    this.getDataList();
+                },
+                "CoachId": function (val) {
+                    this.getDataList();
+                }
+            },
+            methods: {
+                getSearchModel: function (table) {
+                    table = table || helper.default.Vue.DefaultTable;
+                    return {
+                        Id: this.GroundId,
+                        Id1: this.CoachId,
+                        PageParam: helper.getContext(this, table).PageParam,
+                        Sort: this[table].Sort
+                    };
+                }
+            }
+        });
+    }
+</script>
+}

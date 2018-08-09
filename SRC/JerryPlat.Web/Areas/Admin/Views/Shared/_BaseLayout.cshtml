@@ -1,0 +1,20 @@
+﻿<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        <title>优杰学车 - @ViewBag.Title</title>
+        @Styles.Render("~/content/base")
+        @RenderSection("css", false)
+        <script src="/Resource/Constant.js"></script>
+        @Scripts.Render("~/script/base")
+    </head>
+    <body>
+        @Html.AntiForgeryToken()
+        <div id="JerryPlatApp" class="my-app" v-cloak>
+            @RenderBody()
+        </div>
+        @RenderSection("js", false)
+        <script>vueApp = new Vue(getVueOptions());</script>
+    </body>
+</html>

@@ -1,0 +1,58 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JerryPlat.Web", "JerryPlat.Web\JerryPlat.Web.csproj", "{526F9063-CA41-4F8D-824D-65A7D461B29E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JerryPlat.BLL", "JerryPlat.BLL\JerryPlat.BLL.csproj", "{33BADB16-5274-4207-89AA-B2DC162100C5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JerryPlat.DAL", "JerryPlat.DAL\JerryPlat.DAL.csproj", "{01870E14-E877-41F8-A73B-F685288FB18D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JerryPlat.Models", "JerryPlat.Models\JerryPlat.Models.csproj", "{C01B926C-5A00-4BE2-9257-C11778C9626E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JerryPlat.Pay", "JerryPlat.Pay\JerryPlat.Pay.csproj", "{BA34F175-23BC-4089-B54A-C5A3A5AC7D2E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JerryPlat.Office", "JerryPlat.Office\JerryPlat.Office.csproj", "{313034F1-AF15-49B1-9679-A5C7CBABFCA9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JerryPlat.Utils", "JerryPlat.Utils\JerryPlat.Utils.csproj", "{AD004005-8712-4728-8F9B-753A75E8C715}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{526F9063-CA41-4F8D-824D-65A7D461B29E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{526F9063-CA41-4F8D-824D-65A7D461B29E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{526F9063-CA41-4F8D-824D-65A7D461B29E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{526F9063-CA41-4F8D-824D-65A7D461B29E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{33BADB16-5274-4207-89AA-B2DC162100C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{33BADB16-5274-4207-89AA-B2DC162100C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{33BADB16-5274-4207-89AA-B2DC162100C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{33BADB16-5274-4207-89AA-B2DC162100C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{01870E14-E877-41F8-A73B-F685288FB18D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{01870E14-E877-41F8-A73B-F685288FB18D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{01870E14-E877-41F8-A73B-F685288FB18D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{01870E14-E877-41F8-A73B-F685288FB18D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C01B926C-5A00-4BE2-9257-C11778C9626E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C01B926C-5A00-4BE2-9257-C11778C9626E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C01B926C-5A00-4BE2-9257-C11778C9626E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C01B926C-5A00-4BE2-9257-C11778C9626E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA34F175-23BC-4089-B54A-C5A3A5AC7D2E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA34F175-23BC-4089-B54A-C5A3A5AC7D2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA34F175-23BC-4089-B54A-C5A3A5AC7D2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA34F175-23BC-4089-B54A-C5A3A5AC7D2E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{313034F1-AF15-49B1-9679-A5C7CBABFCA9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{313034F1-AF15-49B1-9679-A5C7CBABFCA9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{313034F1-AF15-49B1-9679-A5C7CBABFCA9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{313034F1-AF15-49B1-9679-A5C7CBABFCA9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AD004005-8712-4728-8F9B-753A75E8C715}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD004005-8712-4728-8F9B-753A75E8C715}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD004005-8712-4728-8F9B-753A75E8C715}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD004005-8712-4728-8F9B-753A75E8C715}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
