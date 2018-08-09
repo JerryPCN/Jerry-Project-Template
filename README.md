@@ -37,5 +37,4 @@ QQ: [412403823](tencent://AddContact/?fromId=50&fromSubId=1&subcmd=all&uin=41240
 -------
 如果觉得对你有用，请先标星，不吝打赏，感谢对我的支持。
 
-![](https://github.com/JerryPCN/Jerry-Project-Template/blob/master/Reward/wxpay.png)  
-![](https://github.com/JerryPCN/Jerry-Project-Template/blob/master/Reward/alipay.jpg)  
+![](https://github.com/JerryPCN/Jerry-Project-Template/blob/master/Reward/wxpay.png)  ![](https://github.com/JerryPCN/Jerry-Project-Template/blob/master/Reward/alipay.jpg)  
