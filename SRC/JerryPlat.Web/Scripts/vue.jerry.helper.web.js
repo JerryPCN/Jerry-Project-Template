@@ -127,7 +127,8 @@ var vueApp = null;
 
     /*
     * context: {A:{B:{C:1}}}
-    * name: "A.B.C"
+    * keyList: "A.B.C"
+    * split："."
     */
     function _getContext(context, keyList, split) {
         split = split || ".";
