@@ -349,7 +349,6 @@
     <Content Include="Areas\Admin\Views\School\Edit.cshtml" />
     <Content Include="Areas\Admin\Views\School\Index.cshtml" />
     <Content Include="Areas\Admin\Views\Member\Import.cshtml" />
-    <Content Include="File\Template\MemberTemplate.xlsx" />
     <Content Include="Areas\Admin\Views\Enroll\Note.cshtml" />
     <Content Include="Areas\Admin\Views\Enroll\Edit.cshtml" />
     <Content Include="Areas\Admin\Views\Member\ScoreDetails.cshtml" />
@@ -442,6 +441,7 @@
   <ItemGroup>
     <Folder Include="App_Data\" />
     <Folder Include="Areas\Mob\Views\WxPay\" />
+    <Folder Include="File\Template\" />
     <Folder Include="Libs\" />
     <Folder Include="Views\Import\" />
     <Folder Include="Views\Sms\" />

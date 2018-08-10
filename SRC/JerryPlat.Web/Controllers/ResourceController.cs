@@ -3,11 +3,10 @@ using System.Web.Mvc;
 
 namespace JerryPlat.Web.Controllers
 {
-    //[OutputCache(Duration = 2000)]//设置过期时间单位为秒
+    //[OutputCache(Duration = 60 * 60 * 24)]//设置过期时间单位为秒
     public class ResourceController : Controller
     {
         // GET: Resource
-        [OutputCache()]
         public ActionResult Js(string name)
         {
             string strScript = string.Empty;
@@ -20,7 +19,6 @@ namespace JerryPlat.Web.Controllers
         }
 
         // GET: Resource
-        [OutputCache()]
         public ActionResult Css(string name)
         {
             return Content("");

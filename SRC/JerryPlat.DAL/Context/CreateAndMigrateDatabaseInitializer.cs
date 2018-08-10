@@ -152,8 +152,8 @@ namespace JerryPlat.DAL.Context
                 new OwinConfig {
                     Id = intId++,
                     Name ="Wechat",
-                    AppId ="",
-                    AppSecret ="",
+                    AppId ="AppId",
+                    AppSecret ="AppSecret",
                     RequestUri ="https://open.weixin.qq.com/connect/oauth2/authorize?appid={{AppId}}&redirect_uri={{RedirectUri}}&response_type=code&scope=snsapi_userinfo&state={{State}}#wechat_redirect",
                     AccessTokenUri="https://api.weixin.qq.com/sns/oauth2/access_token?appid={{AppId}}&secret={{AppSecret}}&code={{Code}}&grant_type=authorization_code",
                     UserInfoUri="https://api.weixin.qq.com/sns/userinfo?access_token={{Access_Token}}&openid={{OpenId}}",
