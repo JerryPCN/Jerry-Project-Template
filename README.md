@@ -14,6 +14,8 @@ Jerry-Project-Template
 --------
 该项目是一个完整的前端+后台管理程序，是一个驾校公众号的程序，实现题库从驾考宝典抓取，顺序，随机，错题，考试，驾校报名等，是我在项目开发中的经验总结，为了最大简化代码而生，对于站点的安全性也做了处理，适用于中小型网站开发及管理项目。
 
+![](https://github.com/JerryPCN/Jerry-Project-Template/blob/master/Reward/ui.png)
+
 所用技术
 --------
 MVVC, EF(Code First), NPOI, JQuery, Vue2JS, ElementUI, MintUI, Log4Net, 微信JsAPI, Wechat Pay, AliPay, 短信验证，二维码等。
